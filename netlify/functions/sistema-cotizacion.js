@@ -986,5 +986,28 @@ class SistemaCotizacionCompleto {
         }
       };
 
-      const response = await
-      module.exports = { SistemaCotizacionCompleto };
+      const response = await fetch(`${this.hubspot.apiUrl}/crm/v3/objects/contacts`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.hubspot.apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(contactData)
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        return { success: true, contactId: result.id };
+      } else {
+        const error = await response.text();
+        return { success: false, error: error };
+      }
+
+    } catch (error) {
+      console.error('Error enviando a HubSpot:', error);
+      return { success: false, error: error.message };
+    }
+  }
+}
+
+module.exports = { SistemaCotizacionCompleto };

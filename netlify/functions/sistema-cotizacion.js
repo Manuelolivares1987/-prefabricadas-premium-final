@@ -1,4 +1,4 @@
-// Sistema de Cotización Completo v3.0 - Prefabricadas Premium
+// Sistema de Cotización Completo v3.1 - Prefabricadas Premium
 class SistemaCotizacionCompleto {
   constructor() {
     this.valorUF = null;
@@ -10,19 +10,19 @@ class SistemaCotizacionCompleto {
         whatsapp: '+56955278508',
         nombre: 'La Serena',
         direccion: 'Av. Francisco de Aguirre 123, La Serena',
-        email: 'laserena@prefabricadaspremium.cl'
+        email: 'lsanchez@prefabricadaspremium.cl'
       },
       'Casablanca': {
         whatsapp: '+56938886338',
         nombre: 'Casablanca',
         direccion: 'Ruta 68 Km 75, Casablanca',
-        email: 'casablanca@prefabricadaspremium.cl'
+        email: 'cmorales@prefabricadaspremium.cl'
       },
       'Copiapó': {
         whatsapp: '+56950573020',
         nombre: 'Copiapó',
         direccion: 'Av. Copayapu 456, Copiapó',
-        email: 'copiapo@prefabricadaspremium.cl'
+        email: 'ffabrega@prefabricadaspremium.cl'
       }
     };
 
@@ -33,7 +33,7 @@ class SistemaCotizacionCompleto {
       apiUrl: 'https://api.hubapi.com'
     };
 
-    // Tarifas por m2 en UF + IVA
+    // Tarifas por m2 en UF (sin IVA - se aplicará después)
     this.tarifas = {
       MADERA_TINGLADO: { util: 3.6, terraza: 2, entrepiso: null, logia: 2.7 },
       MADERA_OSB: { util: 3.6, terraza: 2, entrepiso: 0.72, logia: 2.7 },
@@ -44,14 +44,14 @@ class SistemaCotizacionCompleto {
       METALCON_OSB: { util: 4.1, terraza: 2, entrepiso: 1.72, logia: 3 }
     };
 
-    // Modelos con todas sus variantes
+    // Modelos con todas sus variantes CORREGIDO - Milán incluye SIP + VOLCANBOARD
     this.modelos = {
       'Milán': {
         opciones: [
           { material: 'MADERA', revestimiento: 'OSB', m2_utiles: 230, m2_terraza: 81, entrepiso: 84, logia: 0 },
-          { material: 'MADERA', revestimiento: 'VOLCANBOARD', m2_utiles: 230, m2_terraza: 81, entrepiso: 84, logia: 0 },
+          { material: 'SIP', revestimiento: 'VOLCANBOARD', m2_utiles: 230, m2_terraza: 81, entrepiso: 84, logia: 0 },
           { material: 'METALCON', revestimiento: 'VOLCANBOARD', m2_utiles: 230, m2_terraza: 81, entrepiso: 84, logia: 0 },
-          { material: 'METALCON', revestimiento: 'OSB', m2_utiles: 230, m2_terraza: 81, entrepiso: 84, logia: 0 }
+          { material: 'MADERA', revestimiento: 'VOLCANBOARD', m2_utiles: 230, m2_terraza: 81, entrepiso: 84, logia: 0 }
         ],
         imagen: 'modelos/milan.jpg',
         dormitorios: 5,
@@ -120,6 +120,46 @@ class SistemaCotizacionCompleto {
         imagen: 'modelos/amalfitano.jpg',
         dormitorios: 4,
         baños: 3
+      },
+      'Málaga': {
+        opciones: [
+          { material: 'MADERA', revestimiento: 'OSB', m2_utiles: 120, m2_terraza: 25, entrepiso: 0, logia: 0 },
+          { material: 'SIP', revestimiento: 'VOLCANBOARD', m2_utiles: 120, m2_terraza: 25, entrepiso: 0, logia: 0 },
+          { material: 'METALCON', revestimiento: 'VOLCANBOARD', m2_utiles: 120, m2_terraza: 25, entrepiso: 0, logia: 0 }
+        ],
+        imagen: 'modelos/malaga.jpg',
+        dormitorios: 3,
+        baños: 2
+      },
+      'Mónaco': {
+        opciones: [
+          { material: 'MADERA', revestimiento: 'OSB', m2_utiles: 115, m2_terraza: 30, entrepiso: 0, logia: 0 },
+          { material: 'SIP', revestimiento: 'VOLCANBOARD', m2_utiles: 115, m2_terraza: 30, entrepiso: 0, logia: 0 },
+          { material: 'METALCON', revestimiento: 'VOLCANBOARD', m2_utiles: 115, m2_terraza: 30, entrepiso: 0, logia: 0 }
+        ],
+        imagen: 'modelos/monaco.jpg',
+        dormitorios: 3,
+        baños: 2
+      },
+      'Cádiz': {
+        opciones: [
+          { material: 'MADERA', revestimiento: 'OSB', m2_utiles: 105, m2_terraza: 20, entrepiso: 0, logia: 0 },
+          { material: 'SIP', revestimiento: 'VOLCANBOARD', m2_utiles: 105, m2_terraza: 20, entrepiso: 0, logia: 0 },
+          { material: 'METALCON', revestimiento: 'VOLCANBOARD', m2_utiles: 105, m2_terraza: 20, entrepiso: 0, logia: 0 }
+        ],
+        imagen: 'modelos/cadiz.jpg',
+        dormitorios: 3,
+        baños: 2
+      },
+      'Eclipse': {
+        opciones: [
+          { material: 'MADERA', revestimiento: 'OSB', m2_utiles: 98, m2_terraza: 22, entrepiso: 0, logia: 0 },
+          { material: 'SIP', revestimiento: 'VOLCANBOARD', m2_utiles: 98, m2_terraza: 22, entrepiso: 0, logia: 0 },
+          { material: 'METALCON', revestimiento: 'VOLCANBOARD', m2_utiles: 98, m2_terraza: 22, entrepiso: 0, logia: 0 }
+        ],
+        imagen: 'modelos/eclipse.jpg',
+        dormitorios: 3,
+        baños: 2
       }
     };
 
@@ -335,7 +375,7 @@ class SistemaCotizacionCompleto {
 
         precios[tipoOpcion] = {
           uf: Math.round(totalUF * 100) / 100,
-          clp: Math.round(totalUF * this.valorUF),
+          clp: Math.round(totalUF * this.valorUF * 1.19), // CORREGIDO: Agregado IVA 19%
           desglose: desglose,
           configuracion: configuracion,
           opcion: opcion
@@ -387,7 +427,7 @@ class SistemaCotizacionCompleto {
       sucursal: this.sucursales[datosFormulario.sucursal] || this.sucursales['La Serena'],
       
       financiamiento: {
-        solicitado: datosFormulario.financia === 'Sí',
+        solicitado: datosFormulario.financia === 'si',
         monto: datosFormulario.monto || null,
         rut_financiamiento: datosFormulario.rut || null
       },
@@ -413,12 +453,12 @@ class SistemaCotizacionCompleto {
     return fecha.toLocaleDateString('es-CL');
   }
 
-  // Generar HTML profesional para cotización
+  // Generar HTML profesional para cotización (para email)
   generarHTMLCotizacion(cotizacion) {
     const preciosOrdenados = ['economica', 'premium', 'estructural'].map(tipo => ({
       tipo,
       ...cotizacion.precios[tipo]
-    }));
+    })).filter(precio => precio.uf); // Solo mostrar precios que existan
 
     return `
     <!DOCTYPE html>
@@ -436,44 +476,27 @@ class SistemaCotizacionCompleto {
                 background: #f5f5f5; 
             }
             .container { 
-                max-width: 1000px; 
-                margin: 20px auto; 
+                max-width: 800px; 
+                margin: 0 auto; 
                 background: white; 
                 border-radius: 15px; 
                 overflow: hidden; 
                 box-shadow: 0 15px 40px rgba(0,0,0,0.1); 
             }
             .header { 
-                background: linear-gradient(135deg, #0074D9 0%, #0056b3 100%); 
+                background: linear-gradient(135deg, #8B5A3C 0%, #A67C52 100%); 
                 color: white; 
                 padding: 40px 30px; 
                 text-align: center; 
-                position: relative;
-            }
-            .header::before {
-                content: '';
-                position: absolute;
-                top: 0; left: 0; right: 0; bottom: 0;
-                background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="white" opacity="0.1"/><circle cx="80" cy="80" r="2" fill="white" opacity="0.1"/></svg>');
-            }
-            .logo { 
-                max-height: 80px; 
-                margin-bottom: 20px; 
-                position: relative; 
-                z-index: 1;
             }
             .header h1 { 
-                font-size: 2.5em; 
+                font-size: 2.2em; 
                 margin-bottom: 10px; 
                 font-weight: 300; 
-                position: relative; 
-                z-index: 1;
             }
             .header p { 
-                font-size: 1.2em; 
+                font-size: 1.1em; 
                 opacity: 0.9; 
-                position: relative; 
-                z-index: 1;
             }
             
             .cliente-info { 
@@ -481,107 +504,82 @@ class SistemaCotizacionCompleto {
                 padding: 30px; 
                 border-bottom: 1px solid #e9ecef; 
             }
-            .cliente-grid { 
+            .info-grid { 
                 display: grid; 
-                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
-                gap: 20px; 
-                margin-top: 20px; 
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+                gap: 15px; 
+                margin-top: 15px; 
             }
-            .cliente-item { 
+            .info-item { 
                 background: white; 
-                padding: 20px; 
-                border-radius: 10px; 
-                border-left: 4px solid #0074D9; 
-                box-shadow: 0 3px 10px rgba(0,0,0,0.05); 
+                padding: 15px; 
+                border-radius: 8px; 
+                border-left: 4px solid #8B5A3C; 
             }
-            .cliente-item strong { 
+            .info-item strong { 
                 display: block; 
-                color: #0074D9; 
+                color: #8B5A3C; 
                 font-size: 0.9em; 
-                text-transform: uppercase; 
-                letter-spacing: 0.5px; 
-                margin-bottom: 8px; 
-            }
-            .cliente-item span { 
-                font-size: 1.1em; 
-                font-weight: 500; 
+                margin-bottom: 5px; 
             }
             
             .modelo-section { 
-                padding: 40px 30px; 
-                background: white; 
+                padding: 30px; 
+                text-align: center;
             }
-            .modelo-header { 
-                display: grid; 
-                grid-template-columns: 250px 1fr; 
-                gap: 30px; 
-                align-items: center; 
-                margin-bottom: 30px; 
-            }
-            .modelo-imagen { 
-                width: 100%; 
-                height: 180px; 
-                object-fit: cover; 
-                border-radius: 12px; 
-                box-shadow: 0 6px 20px rgba(0,0,0,0.1); 
-            }
-            .modelo-info h2 { 
-                color: #0074D9; 
-                font-size: 2.5em; 
+            .modelo-section h2 { 
+                color: #8B5A3C; 
+                font-size: 2em; 
                 margin-bottom: 15px; 
             }
             .modelo-detalles { 
-                display: flex; 
-                gap: 20px; 
-                margin-bottom: 15px; 
-                flex-wrap: wrap;
+                display: inline-flex; 
+                gap: 15px; 
+                margin-bottom: 20px; 
             }
             .detalle { 
-                background: #e8f4f8; 
-                padding: 10px 20px; 
-                border-radius: 25px; 
+                background: #D4B896; 
+                padding: 8px 16px; 
+                border-radius: 20px; 
                 font-weight: 600; 
-                color: #0074D9; 
-                font-size: 0.95em;
+                color: #8B5A3C; 
             }
             
             .precios-section { 
-                padding: 40px 30px; 
+                padding: 30px; 
                 background: #f8f9fa; 
             }
-            .precios-container { 
+            .precios-grid { 
                 display: grid; 
-                grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); 
-                gap: 25px; 
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+                gap: 20px; 
             }
-            .precio-opcion { 
+            .precio-card { 
                 background: white; 
-                border-radius: 15px; 
-                padding: 30px; 
-                box-shadow: 0 8px 25px rgba(0,0,0,0.08); 
+                border-radius: 12px; 
+                padding: 25px; 
+                box-shadow: 0 5px 15px rgba(0,0,0,0.08); 
                 border: 3px solid transparent; 
-                transition: all 0.3s ease; 
                 position: relative;
             }
-            .precio-opcion.recomendada { 
+            .precio-card.recomendada { 
                 border-color: #28a745; 
                 transform: scale(1.02);
             }
-            .precio-opcion.recomendada::before { 
+            .precio-card.recomendada::before { 
                 content: 'MÁS POPULAR'; 
                 position: absolute; 
-                top: -15px; 
-                right: 20px; 
+                top: -12px; 
+                right: 15px; 
                 background: #28a745; 
                 color: white; 
-                padding: 8px 20px; 
-                border-radius: 25px; 
-                font-size: 0.75em; 
+                padding: 6px 15px; 
+                border-radius: 20px; 
+                font-size: 0.7em; 
                 font-weight: bold; 
-                letter-spacing: 1px;
             }
             .precio-titulo { 
-                font-size: 1.4em; 
+                font-size: 1.3em; 
                 font-weight: bold; 
                 margin-bottom: 5px; 
                 text-align: center; 
@@ -592,47 +590,35 @@ class SistemaCotizacionCompleto {
                 text-align: center; 
                 margin-bottom: 20px; 
             }
-            .precio-principal { 
+            .precio-valor { 
                 text-align: center; 
-                margin: 25px 0; 
-                padding: 20px;
+                margin: 20px 0; 
+                padding: 15px;
                 background: #f8f9fa;
-                border-radius: 10px;
+                border-radius: 8px;
             }
             .precio-clp { 
-                font-size: 2.2em; 
+                font-size: 1.8em; 
                 font-weight: bold; 
-                color: #0074D9; 
+                color: #8B5A3C; 
                 display: block; 
             }
             .precio-uf { 
-                font-size: 1.1em; 
+                font-size: 1em; 
                 color: #666; 
-                margin-top: 8px; 
-            }
-            .precio-desglose { 
-                background: #f1f3f4; 
-                padding: 15px; 
-                border-radius: 8px; 
-                margin: 20px 0; 
-                font-size: 0.9em; 
-            }
-            .incluye-titulo {
-                font-weight: bold;
-                color: #0074D9;
-                margin-bottom: 15px;
-                font-size: 1.1em;
+                margin-top: 5px; 
             }
             .incluye-lista { 
                 list-style: none; 
                 padding: 0; 
+                margin-top: 15px;
             }
             .incluye-lista li { 
-                padding: 8px 0; 
-                border-bottom: 1px solid #eee; 
+                padding: 6px 0; 
                 position: relative; 
-                padding-left: 25px; 
+                padding-left: 20px; 
                 font-size: 0.9em;
+                border-bottom: 1px solid #eee;
             }
             .incluye-lista li::before { 
                 content: '✓'; 
@@ -640,76 +626,65 @@ class SistemaCotizacionCompleto {
                 left: 0; 
                 color: #28a745; 
                 font-weight: bold; 
-                font-size: 1.1em;
             }
             .incluye-lista li:last-child { border-bottom: none; }
             
-            .uf-info { 
+            .uf-info, .vigencia { 
                 background: #fff3cd; 
                 border: 2px solid #ffeaa7; 
-                padding: 25px; 
-                border-radius: 12px; 
-                margin: 30px; 
+                padding: 20px; 
+                border-radius: 10px; 
+                margin: 20px 30px; 
                 text-align: center; 
             }
             .vigencia { 
                 background: #d1ecf1; 
-                border: 2px solid #bee5eb; 
-                padding: 25px; 
-                border-radius: 12px; 
-                margin: 30px; 
-                text-align: center; 
+                border-color: #bee5eb; 
                 color: #0c5460; 
             }
             
             .whatsapp-section {
                 background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
                 color: white;
-                padding: 30px;
-                margin: 30px;
-                border-radius: 15px;
+                padding: 25px 30px;
                 text-align: center;
             }
             .whatsapp-btn {
                 display: inline-block;
                 background: white;
                 color: #25D366;
-                padding: 15px 30px;
-                border-radius: 50px;
+                padding: 12px 25px;
+                border-radius: 25px;
                 text-decoration: none;
                 font-weight: bold;
-                margin-top: 15px;
-                font-size: 1.1em;
-                transition: transform 0.3s ease;
-            }
-            .whatsapp-btn:hover {
-                transform: scale(1.05);
+                margin-top: 10px;
+                font-size: 1em;
             }
             
             .faq-section { 
                 background: white; 
-                padding: 40px 30px; 
+                padding: 30px; 
             }
             .faq-title { 
-                color: #0074D9; 
-                font-size: 2em; 
-                margin-bottom: 30px; 
+                color: #8B5A3C; 
+                font-size: 1.8em; 
+                margin-bottom: 25px; 
                 text-align: center; 
             }
             .faq-categoria {
-                margin-bottom: 30px;
+                margin-bottom: 25px;
             }
             .faq-categoria h4 {
                 color: #28a745;
-                font-size: 1.3em;
-                margin-bottom: 15px;
-                padding-bottom: 8px;
+                font-size: 1.2em;
+                margin-bottom: 12px;
+                padding-bottom: 6px;
                 border-bottom: 2px solid #28a745;
             }
             .faq-item { 
-                margin-bottom: 20px; 
+                margin-bottom: 15px; 
+                padding-bottom: 12px; 
                 border-bottom: 1px solid #eee; 
-                padding-bottom: 15px; 
             }
             .faq-item:last-child { 
                 border-bottom: none; 
@@ -717,172 +692,142 @@ class SistemaCotizacionCompleto {
             }
             .faq-pregunta { 
                 font-weight: bold; 
-                color: #0074D9; 
-                margin-bottom: 8px; 
-                font-size: 1em; 
+                color: #8B5A3C; 
+                margin-bottom: 6px; 
+                font-size: 0.95em; 
             }
             .faq-respuesta { 
                 color: #555; 
-                line-height: 1.6; 
-                font-size: 0.95em;
+                line-height: 1.5; 
+                font-size: 0.9em;
             }
             
             .footer { 
                 background: #333; 
                 color: white; 
-                padding: 40px 30px; 
+                padding: 30px; 
                 text-align: center; 
             }
             .footer h3 { 
-                margin-bottom: 20px; 
-                font-size: 1.8em;
+                margin-bottom: 15px; 
+                font-size: 1.6em;
             }
             .footer p { 
-                margin: 8px 0; 
+                margin: 6px 0; 
                 opacity: 0.9; 
-            }
-            .footer-info {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-                gap: 30px;
-                margin-top: 30px;
-                text-align: left;
+                font-size: 0.95em;
             }
             
-            @media (max-width: 768px) {
-                .container { margin: 10px; border-radius: 0; }
-                .precios-container { grid-template-columns: 1fr; }
-                .modelo-header { grid-template-columns: 1fr; text-align: center; }
-                .cliente-grid { grid-template-columns: 1fr; }
-                .header { padding: 30px 20px; }
-                .header h1 { font-size: 2em; }
-                .precio-clp { font-size: 1.8em; }
-                .modelo-detalles { justify-content: center; }
-                .footer-info { grid-template-columns: 1fr; text-align: center; }
+            @media (max-width: 600px) {
+                .container { margin: 0; border-radius: 0; }
+                .precios-grid { grid-template-columns: 1fr; }
+                .info-grid { grid-template-columns: 1fr; }
+                .header { padding: 25px 20px; }
+                .header h1 { font-size: 1.8em; }
+                .precio-clp { font-size: 1.5em; }
+                .modelo-detalles { flex-direction: column; gap: 8px; }
             }
         </style>
     </head>
     <body>
         <div class="container">
             <div class="header">
-                <img src="logo_premium/1. BLANCO.png" alt="Prefabricadas Premium" class="logo">
-                <h1>COTIZACIÓN PROFESIONAL</h1>
-                <p>N° ${cotizacion.numero} | ${cotizacion.fecha}</p>
+                <h1>🏠 COTIZACIÓN PREFABRICADAS PREMIUM</h1>
+                <p>Cotización N° ${cotizacion.numero} | ${cotizacion.fecha}</p>
             </div>
             
             <div class="cliente-info">
-                <h3 style="color: #0074D9; margin-bottom: 20px; font-size: 1.6em;">📋 Información del Cliente</h3>
-                <div class="cliente-grid">
-                    <div class="cliente-item">
-                        <strong>Nombre Completo</strong>
-                        <span>${cotizacion.cliente.nombre}</span>
+                <h3 style="color: #8B5A3C; margin-bottom: 15px;">📋 Información del Cliente</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <strong>Nombre</strong>
+                        ${cotizacion.cliente.nombre}
                     </div>
-                    <div class="cliente-item">
-                        <strong>Correo Electrónico</strong>
-                        <span>${cotizacion.cliente.email}</span>
+                    <div class="info-item">
+                        <strong>Email</strong>
+                        ${cotizacion.cliente.email}
                     </div>
-                    <div class="cliente-item">
+                    <div class="info-item">
                         <strong>Teléfono</strong>
-                        <span>${cotizacion.cliente.telefono}</span>
+                        ${cotizacion.cliente.telefono}
                     </div>
-                    <div class="cliente-item">
-                        <strong>RUT</strong>
-                        <span>${cotizacion.cliente.rut}</span>
-                    </div>
-                    <div class="cliente-item">
+                    <div class="info-item">
                         <strong>Sucursal</strong>
-                        <span>${cotizacion.sucursal.nombre}</span>
-                    </div>
-                    <div class="cliente-item">
-                        <strong>Habitaciones Necesarias</strong>
-                        <span>${cotizacion.cliente.habitaciones_necesarias}</span>
+                        ${cotizacion.sucursal.nombre}
                     </div>
                 </div>
             </div>
             
             <div class="modelo-section">
-                <div class="modelo-header">
-                    <img src="${cotizacion.modelo.imagen}" alt="${cotizacion.modelo.nombre}" class="modelo-imagen">
-                    <div class="modelo-info">
-                        <h2>Modelo ${cotizacion.modelo.nombre}</h2>
-                        <div class="modelo-detalles">
-                            <span class="detalle">${cotizacion.modelo.dormitorios} Dormitorios</span>
-                            <span class="detalle">${cotizacion.modelo.baños} Baños</span>
-                        </div>
-                        <p style="color: #666; font-size: 1.1em; margin-top: 15px;">
-                            Casa diseñada con los más altos estándares de calidad y eficiencia energética, 
-                            cumpliendo con todas las normativas chilenas de construcción y resistencia sísmica.
-                        </p>
-                    </div>
+                <h2>Modelo ${cotizacion.modelo.nombre}</h2>
+                <div class="modelo-detalles">
+                    <span class="detalle">${cotizacion.modelo.dormitorios} Dormitorios</span>
+                    <span class="detalle">${cotizacion.modelo.baños} Baños</span>
                 </div>
+                <p style="color: #666; font-size: 1em; max-width: 600px; margin: 0 auto;">
+                    Casa diseñada con los más altos estándares de calidad y eficiencia energética, 
+                    cumpliendo con todas las normativas chilenas de construcción y resistencia sísmica.
+                </p>
             </div>
             
             <div class="precios-section">
-                <h3 style="color: #0074D9; margin-bottom: 30px; text-align: center; font-size: 2em;">💰 Opciones de Construcción</h3>
-                <div class="precios-container">
+                <h3 style="color: #8B5A3C; margin-bottom: 25px; text-align: center; font-size: 1.8em;">💰 Opciones de Construcción</h3>
+                <div class="precios-grid">
                     ${preciosOrdenados.map(precio => `
-                        <div class="precio-opcion ${precio.opcion.recomendada ? 'recomendada' : ''}" style="border-color: ${precio.opcion.color};">
+                        <div class="precio-card ${precio.opcion.recomendada ? 'recomendada' : ''}" style="border-color: ${precio.opcion.color};">
                             <div class="precio-titulo" style="color: ${precio.opcion.color};">${precio.opcion.titulo}</div>
                             <div class="precio-subtitulo">${precio.opcion.subtitulo}</div>
-                            <div class="precio-principal">
-                                <span class="precio-clp">${precio.clp.toLocaleString('es-CL')}</span>
+                            <div class="precio-valor">
+                                <span class="precio-clp">$${precio.clp.toLocaleString('es-CL')}</span>
                                 <div class="precio-uf">${precio.uf} UF (IVA incluido)</div>
                             </div>
-                            <div class="precio-desglose">
-                                <strong>Desglose por m²:</strong><br>
-                                ${Object.entries(precio.desglose).map(([tipo, datos]) => 
-                                    `${tipo.charAt(0).toUpperCase() + tipo.slice(1)}: ${datos.m2}m² × ${datos.precio_m2} UF = ${datos.total.toFixed(2)} UF`
-                                ).join('<br>')}
+                            <div style="font-weight: bold; color: ${precio.opcion.color}; margin-bottom: 10px; font-size: 1em;">
+                                ✨ Esta opción incluye:
                             </div>
-                            <div class="incluye-titulo">✨ Esta opción incluye:</div>
                             <ul class="incluye-lista">
-                                ${precio.opcion.incluye.map(item => `<li>${item}</li>`).join('')}
+                                ${precio.opcion.incluye.slice(0, 6).map(item => `<li>${item}</li>`).join('')}
+                                ${precio.opcion.incluye.length > 6 ? '<li style="font-style: italic; color: #666;">... y mucho más</li>' : ''}
                             </ul>
-                            <p style="margin-top: 15px; font-style: italic; color: #666; font-size: 0.9em;">
-                                ${precio.opcion.descripcion}
-                            </p>
                         </div>
                     `).join('')}
                 </div>
             </div>
             
             <div class="uf-info">
-                <strong style="font-size: 1.2em;">📊 Valor UF utilizado en esta cotización:</strong><br>
-                <span style="font-size: 1.4em; color: #0074D9; font-weight: bold;">${cotizacion.uf.valor.toLocaleString('es-CL')}</span>
+                <strong style="font-size: 1.1em;">📊 Valor UF utilizado:</strong><br>
+                <span style="font-size: 1.3em; color: #8B5A3C; font-weight: bold;">$${cotizacion.uf.valor.toLocaleString('es-CL')}</span>
                 <br><small>Fecha: ${cotizacion.uf.fecha}</small>
             </div>
             
             <div class="vigencia">
-                <strong style="font-size: 1.2em;">⏰ Vigencia de esta cotización:</strong><br>
-                <span style="font-size: 1.3em;">Válida hasta el ${cotizacion.vigencia}</span><br>
-                <small>(15 días corridos desde la fecha de emisión)</small>
+                <strong style="font-size: 1.1em;">⏰ Vigencia:</strong><br>
+                <span style="font-size: 1.2em;">Válida hasta el ${cotizacion.vigencia}</span><br>
+                <small>(15 días corridos desde la emisión)</small>
             </div>
             
             ${cotizacion.financiamiento.solicitado ? `
-            <div style="background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%); padding: 30px; margin: 30px; border-radius: 15px; border-left: 5px solid #28a745;">
-                <h3 style="color: #155724; margin-bottom: 20px; text-align: center; font-size: 1.4em;">💳 Información de Financiamiento</h3>
+            <div style="background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%); padding: 25px 30px; margin: 20px 30px; border-radius: 12px;">
+                <h3 style="color: #155724; margin-bottom: 15px; text-align: center;">💳 Financiamiento Solicitado</h3>
                 <div style="text-align: center;">
-                    <p><strong>Monto solicitado:</strong> ${parseInt(cotizacion.financiamiento.monto || 0).toLocaleString('es-CL')}</p>
-                    <p><strong>Modalidad disponible:</strong> Crédito hipotecario de autoconstrucción</p>
-                    <p><strong>Financiamiento:</strong> Hasta 80% del valor del proyecto</p>
-                    <p><strong>Plazo:</strong> Hasta 30 años</p>
-                    <p style="margin-top: 15px; font-style: italic; color: #666;">
-                        Trabajamos con todos los bancos principales y te asesoramos en la postulación 
-                        a subsidios DS1, DS49 y DS19 sin costo adicional.
+                    <p><strong>Monto:</strong> $${parseInt(cotizacion.financiamiento.monto || 0).toLocaleString('es-CL')}</p>
+                    <p><strong>Modalidad:</strong> Crédito hipotecario de autoconstrucción</p>
+                    <p><strong>Financiamiento:</strong> Hasta 80% del valor</p>
+                    <p style="margin-top: 10px; font-style: italic; color: #666; font-size: 0.9em;">
+                        Te asesoramos en la postulación a subsidios DS1, DS49 y DS19 sin costo.
                     </p>
                 </div>
             </div>
             ` : ''}
             
             <div class="whatsapp-section">
-                <h3 style="margin-bottom: 15px;">💬 ¿Tienes consultas sobre tu cotización?</h3>
-                <p>Conecta directamente con nuestro agente especializado de ${cotizacion.sucursal.nombre}</p>
-                <a href="https://wa.me/${cotizacion.sucursal.whatsapp.replace('+', '')}?text=Hola, tengo consultas sobre la cotización ${cotizacion.numero} para el modelo ${cotizacion.modelo.nombre}" 
+                <h3 style="margin-bottom: 10px;">💬 ¿Consultas sobre tu cotización?</h3>
+                <p>Conecta con nuestro especialista de ${cotizacion.sucursal.nombre}</p>
+                <a href="https://wa.me/${cotizacion.sucursal.whatsapp.replace('+', '')}?text=Hola, consultas sobre cotización ${cotizacion.numero} modelo ${cotizacion.modelo.nombre}" 
                    class="whatsapp-btn" target="_blank">
                     📱 Chatear por WhatsApp
                 </a>
-                <p style="margin-top: 15px; font-size: 0.9em; opacity: 0.9;">
-                    ${cotizacion.sucursal.whatsapp} | Horario: Lunes a Viernes 9:00 - 18:00 hrs
+                <p style="margin-top: 10px; font-size: 0.9em; opacity: 0.9;">
+                    ${cotizacion.sucursal.whatsapp} | Lun-Vie 9:00-18:00
                 </p>
             </div>
             
@@ -891,7 +836,7 @@ class SistemaCotizacionCompleto {
                 ${cotizacion.preguntas_frecuentes.map(categoria => `
                     <div class="faq-categoria">
                         <h4>${categoria.categoria}</h4>
-                        ${categoria.preguntas.map(item => `
+                        ${categoria.preguntas.slice(0, 2).map(item => `
                             <div class="faq-item">
                                 <div class="faq-pregunta">${item.pregunta}</div>
                                 <div class="faq-respuesta">${item.respuesta}</div>
@@ -899,46 +844,15 @@ class SistemaCotizacionCompleto {
                         `).join('')}
                     </div>
                 `).join('')}
-                
-                <div style="background: #f0f8ff; padding: 20px; border-radius: 10px; margin-top: 30px; text-align: center;">
-                    <strong style="color: #0074D9;">¿No encuentras la respuesta que buscas?</strong><br>
-                    <p style="margin: 10px 0;">Nuestro equipo está disponible para resolver todas tus dudas</p>
-                    <a href="https://wa.me/${cotizacion.sucursal.whatsapp.replace('+', '')}?text=Tengo consultas adicionales sobre casas prefabricadas" 
-                       style="color: #0074D9; font-weight: bold;">Contáctanos por WhatsApp</a>
-                </div>
             </div>
             
             <div class="footer">
                 <h3>Prefabricadas Premium</h3>
-                <p style="font-size: 1.1em; margin-bottom: 20px;">Tu casa soñada, construida con la más alta calidad</p>
-                
-                <div class="footer-info">
-                    <div>
-                        <h4 style="color: #0074D9; margin-bottom: 10px;">Contacto General</h4>
-                        <p>📧 contacto@prefabricadaspremium.cl</p>
-                        <p>🌐 www.prefabricadaspremium.cl</p>
-                        <p>📞 +56 2 XXXX XXXX</p>
-                    </div>
-                    <div>
-                        <h4 style="color: #0074D9; margin-bottom: 10px;">Sucursal ${cotizacion.sucursal.nombre}</h4>
-                        <p>📍 ${cotizacion.sucursal.direccion}</p>
-                        <p>📧 ${cotizacion.sucursal.email}</p>
-                        <p>📱 ${cotizacion.sucursal.whatsapp}</p>
-                    </div>
-                    <div>
-                        <h4 style="color: #0074D9; margin-bottom: 10px;">Certificaciones</h4>
-                        <p>✓ NCh433 Resistencia sísmica</p>
-                        <p>✓ Norma térmica MINVU</p>
-                        <p>✓ Certificación FSC maderas</p>
-                        <p>✓ ISO 9001 Calidad</p>
-                    </div>
-                </div>
-                
-                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #555;">
-                    <p style="font-size: 0.9em;">
-                        Cotización generada automáticamente el ${cotizacion.fecha}<br>
-                        Esta cotización es válida por 15 días corridos | Precios incluyen IVA
-                    </p>
+                <p>Tu casa soñada, construida con la más alta calidad</p>
+                <p>📧 ${cotizacion.sucursal.email} | 📱 ${cotizacion.sucursal.whatsapp}</p>
+                <p>📍 ${cotizacion.sucursal.direccion}</p>
+                <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #555; font-size: 0.85em;">
+                    Cotización generada el ${cotizacion.fecha} | Válida 15 días | Precios incluyen IVA
                 </div>
             </div>
         </div>
@@ -969,9 +883,9 @@ class SistemaCotizacionCompleto {
           phone: cotizacion.cliente.telefono,
           rut_cliente: cotizacion.cliente.rut,
           modelo_interes: cotizacion.modelo.nombre,
-          precio_economico: cotizacion.precios.economica.clp,
-          precio_premium: cotizacion.precios.premium.clp,
-          precio_estructural: cotizacion.precios.estructural.clp,
+          precio_economico: cotizacion.precios.economica?.clp || 0,
+          precio_premium: cotizacion.precios.premium?.clp || 0,
+          precio_estructural: cotizacion.precios.estructural?.clp || 0,
           sucursal_preferida: cotizacion.sucursal.nombre,
           numero_cotizacion: cotizacion.numero,
           fecha_cotizacion: cotizacion.fecha,

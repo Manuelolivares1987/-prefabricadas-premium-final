@@ -309,19 +309,20 @@ class SistemaCotizacionCompleto {
   // Obtener valor actual de la UF
   async obtenerValorUF() {
     try {
-      const response = await fetch('https://api.boostr.cl/economy/indicator/uf.json');
+      const response = await fetch('https://mindicador.cl/api/uf');
       const data = await response.json();
       
-      if (data && data.value) {
-        this.valorUF = parseFloat(data.value);
-        this.fechaUF = new Date().toLocaleDateString('es-CL');
-        console.log(`UF obtenida: $${this.valorUF.toLocaleString('es-CL')} (${this.fechaUF})`);
+      if (data && data.serie && data.serie[0]) {
+        this.valorUF = parseFloat(data.serie[0].valor);
+        this.fechaUF = new Date(data.serie[0].fecha).toLocaleDateString('es-CL');
+        console.log(`UF obtenida: ${this.valorUF.toLocaleString('es-CL')} (${this.fechaUF})`);
         return true;
       }
     } catch (error) {
       console.error('Error al obtener UF:', error);
       this.valorUF = 37500; // Valor de respaldo
       this.fechaUF = new Date().toLocaleDateString('es-CL');
+      console.log(`Usando UF de respaldo: ${this.valorUF.toLocaleString('es-CL')}`);
     }
     return false;
   }

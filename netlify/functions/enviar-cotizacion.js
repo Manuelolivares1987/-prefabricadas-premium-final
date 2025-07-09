@@ -34,8 +34,10 @@ exports.handler = async (event, context) => {
     await sistema.init();
 
     // Debug: Verificar valor UF obtenido
+    console.log('=== DEBUG UF ===');
     console.log('Valor UF obtenido:', sistema.valorUF);
     console.log('Fecha UF:', sistema.fechaUF);
+    console.log('===============');
 
     // Generar cotización completa
     const cotizacion = sistema.generarCotizacion({
@@ -59,11 +61,11 @@ exports.handler = async (event, context) => {
     }
 
     // Debug: Verificar precios calculados
-    console.log('Precios calculados:', {
-      economica: cotizacion.precios.economica?.clp,
-      premium: cotizacion.precios.premium?.clp,
-      estructural: cotizacion.precios.estructural?.clp
-    });
+    console.log('=== DEBUG PRECIOS ===');
+    console.log('Económica:', cotizacion.precios.economica?.clp);
+    console.log('Premium:', cotizacion.precios.premium?.clp);
+    console.log('Estructural:', cotizacion.precios.estructural?.clp);
+    console.log('==================');
 
     // 1. Crear/actualizar contacto en HubSpot
     const contactData = {

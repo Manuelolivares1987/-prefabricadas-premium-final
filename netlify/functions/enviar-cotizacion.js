@@ -5,27 +5,48 @@ exports.handler = async (event, context) => {
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      },
       body: JSON.stringify({ error: 'Método no permitido' })
     };
   }
 
+  // Logs de debug iniciales
+  console.log('=== INICIO DE PROCESAMIENTO ===');
+  console.log('Variables de entorno disponibles:', {
+    HUBSPOT_API_KEY: !!process.env.HUBSPOT_API_KEY,
+    SENDGRID_API_KEY: !!process.env.SENDGRID_API_KEY
+  });
+
   try {
     const datos = JSON.parse(event.body);
+    console.log('Datos recibidos:', { 
+      nombre: datos.nombre, 
+      correo: datos.correo, 
+      modelo: datos.modelo,
+      sucursal: datos.sucursal 
+    });
     
     // Validar datos requeridos
     if (!datos.nombre || !datos.correo || !datos.telefono || !datos.modelo) {
       return {
         statusCode: 400,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        },
         body: JSON.stringify({ error: 'Faltan campos requeridos' })
       };
     }
 
-    // Configuración HubSpot (usar variables de entorno)
+    // Configuración HubSpot (OPCIONAL - no falla si no está configurado)
     const HUBSPOT_API_KEY = process.env.HUBSPOT_API_KEY;
     const HUBSPOT_PORTAL_ID = process.env.HUBSPOT_PORTAL_ID;
     
     if (!HUBSPOT_API_KEY) {
-      throw new Error('API Key de HubSpot no configurada');
+      console.log('⚠️ HUBSPOT_API_KEY no configurada - saltando HubSpot');
     }
 
     // Importar el sistema de cotización
@@ -56,6 +77,10 @@ exports.handler = async (event, context) => {
     if (!cotizacion) {
       return {
         statusCode: 400,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        },
         body: JSON.stringify({ error: 'No se pudo generar la cotización' })
       };
     }
@@ -67,120 +92,130 @@ exports.handler = async (event, context) => {
     console.log('Estructural:', cotizacion.precios.estructural?.clp);
     console.log('==================');
 
-    // 1. Crear/actualizar contacto en HubSpot
-    const contactData = {
-      properties: {
-        email: datos.correo,
-        firstname: datos.nombre.split(' ')[0] || datos.nombre,
-        lastname: datos.nombre.split(' ').slice(1).join(' ') || '',
-        phone: datos.telefono,
-        rut_cliente: datos.rut || 'No proporcionado',
-        modelo_interes: datos.modelo,
-        precio_economico: cotizacion.precios.economica?.clp || 0,
-        precio_premium: cotizacion.precios.premium?.clp || 0,
-        precio_estructural: cotizacion.precios.estructural?.clp || 0,
-        sucursal_preferida: datos.sucursal,
-        numero_cotizacion: cotizacion.numero,
-        fecha_cotizacion: cotizacion.fecha,
-        financiamiento_solicitado: datos.financia === 'si' ? 'Sí' : 'No',
-        monto_financiamiento: datos.monto || 0,
-        habitaciones_necesarias: datos.habitaciones,
-        comentarios_cliente: datos.comentario || 'Sin comentarios',
-        valor_uf_cotizacion: cotizacion.uf.valor,
-        vigencia_cotizacion: cotizacion.vigencia,
-        lead_source: 'Formulario Web Netlify',
-        lifecyclestage: 'lead',
-        hs_lead_status: 'NEW'
-      }
-    };
+    // Variables para resultados de integraciones
+    let contactId = null;
+    let hubspotResult = { success: false, message: 'No configurado' };
+    let emailResult = { success: false, message: 'No intentado' };
 
-    // Crear contacto en HubSpot
-    let contactId;
-    try {
-      const hubspotResponse = await fetch(`https://api.hubapi.com/crm/v3/objects/contacts`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${HUBSPOT_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(contactData)
-      });
+    // 1. HUBSPOT - Crear/actualizar contacto (solo si está configurado)
+    if (HUBSPOT_API_KEY) {
+      try {
+        console.log('=== HUBSPOT PROCESO ===');
+        
+        const contactData = {
+          properties: {
+            email: datos.correo,
+            firstname: datos.nombre.split(' ')[0] || datos.nombre,
+            lastname: datos.nombre.split(' ').slice(1).join(' ') || 'Sin apellido',
+            phone: datos.telefono,
+            company: 'Cliente Prefabricadas Premium',
+            numero_cotizacion: cotizacion.numero,
+            modelo_interes: datos.modelo,
+            precio_economico: (cotizacion.precios.economica?.clp || 0).toString(),
+            precio_premium: (cotizacion.precios.premium?.clp || 0).toString(),
+            precio_estructural: (cotizacion.precios.estructural?.clp || 0).toString(),
+            sucursal_preferida: datos.sucursal,
+            fecha_cotizacion: cotizacion.fecha,
+            financiamiento_solicitado: datos.financia === 'si' ? 'Sí' : 'No',
+            monto_financiamiento: (datos.monto || 0).toString(),
+            habitaciones_necesarias: (datos.habitaciones || 0).toString(),
+            comentarios_cliente: datos.comentario || 'Sin comentarios',
+            valor_uf_cotizacion: (cotizacion.uf.valor || 0).toString(),
+            vigencia_cotizacion: cotizacion.vigencia,
+            lead_source: 'Formulario Web Netlify',
+            hs_lead_status: 'NEW'
+          }
+        };
 
-      if (hubspotResponse.ok) {
-        const contactResult = await hubspotResponse.json();
-        contactId = contactResult.id;
-        console.log('Contacto creado en HubSpot:', contactId);
-      } else {
-        // Si falla, intentar actualizar contacto existente
-        const updateResponse = await fetch(`https://api.hubapi.com/crm/v3/objects/contacts/${datos.correo}?idProperty=email`, {
-          method: 'PATCH',
+        console.log('Intentando crear contacto en HubSpot...');
+        
+        // Intentar crear contacto
+        const hubspotResponse = await fetch(`https://api.hubapi.com/crm/v3/objects/contacts`, {
+          method: 'POST',
           headers: {
             'Authorization': `Bearer ${HUBSPOT_API_KEY}`,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify(contactData)
         });
-        
-        if (updateResponse.ok) {
-          const updateResult = await updateResponse.json();
-          contactId = updateResult.id;
-          console.log('Contacto actualizado en HubSpot:', contactId);
+
+        if (hubspotResponse.ok) {
+          const contactResult = await hubspotResponse.json();
+          contactId = contactResult.id;
+          hubspotResult = { success: true, message: 'Contacto creado correctamente' };
+          console.log('✅ Contacto creado en HubSpot:', contactId);
         } else {
-          console.error('Error al crear/actualizar contacto en HubSpot');
+          console.log('❌ Error al crear contacto, intentando actualizar...');
+          
+          // Intentar actualizar contacto existente
+          const updateResponse = await fetch(`https://api.hubapi.com/crm/v3/objects/contacts/${encodeURIComponent(datos.correo)}?idProperty=email`, {
+            method: 'PATCH',
+            headers: {
+              'Authorization': `Bearer ${HUBSPOT_API_KEY}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(contactData)
+          });
+          
+          if (updateResponse.ok) {
+            const updateResult = await updateResponse.json();
+            contactId = updateResult.id;
+            hubspotResult = { success: true, message: 'Contacto actualizado correctamente' };
+            console.log('✅ Contacto actualizado en HubSpot:', contactId);
+          } else {
+            const errorText = await updateResponse.text();
+            hubspotResult = { success: false, message: `Error HubSpot: ${updateResponse.status}` };
+            console.log('❌ Error al actualizar contacto:', updateResponse.status, errorText);
+          }
         }
-      }
-    } catch (hubspotError) {
-      console.error('Error con HubSpot:', hubspotError);
-      // Continuar sin fallar si HubSpot falla
-    }
 
-    // 2. Crear deal asociado (solo si se creó el contacto)
-    if (contactId) {
-      try {
-        const dealData = {
-          properties: {
-            dealname: `Cotización ${datos.modelo} - ${datos.nombre}`,
-            dealstage: 'appointmentscheduled',
-            pipeline: 'default',
-            amount: cotizacion.precios.premium?.clp || cotizacion.precios.economica?.clp,
-            modelo_casa: datos.modelo,
-            numero_cotizacion: cotizacion.numero,
-            sucursal_deal: datos.sucursal,
-            tipo_financiamiento: datos.financia === 'si' ? 'Financiado' : 'Contado',
-            closedate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // 30 días
-          },
-          associations: [{
-            to: { id: contactId },
-            types: [{ associationCategory: 'HUBSPOT_DEFINED', associationTypeId: 3 }] // Contact to Deal
-          }]
-        };
+        // 2. Crear deal si el contacto se creó/actualizó
+        if (contactId) {
+          try {
+            const dealData = {
+              properties: {
+                dealname: `Cotización ${datos.modelo} - ${datos.nombre}`,
+                dealstage: 'appointmentscheduled',
+                pipeline: 'default',
+                amount: (cotizacion.precios.premium?.clp || cotizacion.precios.economica?.clp || 0).toString(),
+                closedate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+              },
+              associations: [{
+                to: { id: contactId },
+                types: [{ associationCategory: 'HUBSPOT_DEFINED', associationTypeId: 3 }]
+              }]
+            };
 
-        await fetch(`https://api.hubapi.com/crm/v3/objects/deals`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${HUBSPOT_API_KEY}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(dealData)
-        });
-        console.log('Deal creado en HubSpot');
-      } catch (dealError) {
-        console.error('Error al crear deal:', dealError);
-      }
-    }
+            const dealResponse = await fetch(`https://api.hubapi.com/crm/v3/objects/deals`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${HUBSPOT_API_KEY}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(dealData)
+            });
 
-    // 3. Crear nota con la cotización (solo si se creó el contacto)
-    if (contactId) {
-      try {
-        const noteData = {
-          properties: {
-            hs_note_body: `Cotización automática generada:
-            
+            if (dealResponse.ok) {
+              console.log('✅ Deal creado en HubSpot');
+              hubspotResult.deal = true;
+            } else {
+              console.log('⚠️ Deal no creado');
+            }
+          } catch (dealError) {
+            console.error('Error creando deal:', dealError);
+          }
+
+          // 3. Crear nota con la cotización
+          try {
+            const noteData = {
+              properties: {
+                hs_note_body: `Cotización automática generada:
+                
 Modelo: ${datos.modelo}
 Número de cotización: ${cotizacion.numero}
-Precio Económico: $${cotizacion.precios.economica?.clp.toLocaleString('es-CL') || 'N/A'}
-Precio Premium: $${cotizacion.precios.premium?.clp.toLocaleString('es-CL') || 'N/A'}
-Precio Estructural: $${cotizacion.precios.estructural?.clp.toLocaleString('es-CL') || 'N/A'}
+Precio Económico: $${cotizacion.precios.economica?.clp?.toLocaleString('es-CL') || 'N/A'}
+Precio Premium: $${cotizacion.precios.premium?.clp?.toLocaleString('es-CL') || 'N/A'}
+Precio Estructural: $${cotizacion.precios.estructural?.clp?.toLocaleString('es-CL') || 'N/A'}
 
 Habitaciones necesarias: ${datos.habitaciones}
 Sucursal preferida: ${datos.sucursal}
@@ -190,31 +225,43 @@ ${datos.monto ? `Monto a financiar: $${parseInt(datos.monto).toLocaleString('es-
 Comentarios: ${datos.comentario || 'Sin comentarios adicionales'}
 
 Vigencia: ${cotizacion.vigencia}
-UF utilizada: $${cotizacion.uf.valor.toLocaleString('es-CL')} (${cotizacion.uf.fecha})`
-          },
-          associations: [{
-            to: { id: contactId },
-            types: [{ associationCategory: 'HUBSPOT_DEFINED', associationTypeId: 202 }] // Note to Contact
-          }]
-        };
+UF utilizada: $${cotizacion.uf.valor?.toLocaleString('es-CL')} (${cotizacion.uf.fecha})`
+              },
+              associations: [{
+                to: { id: contactId },
+                types: [{ associationCategory: 'HUBSPOT_DEFINED', associationTypeId: 202 }]
+              }]
+            };
 
-        await fetch(`https://api.hubapi.com/crm/v3/objects/notes`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${HUBSPOT_API_KEY}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(noteData)
-        });
-        console.log('Nota creada en HubSpot');
-      } catch (noteError) {
-        console.error('Error al crear nota:', noteError);
+            const noteResponse = await fetch(`https://api.hubapi.com/crm/v3/objects/notes`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${HUBSPOT_API_KEY}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(noteData)
+            });
+
+            if (noteResponse.ok) {
+              console.log('✅ Nota creada en HubSpot');
+              hubspotResult.note = true;
+            } else {
+              console.log('⚠️ Nota no creada');
+            }
+          } catch (noteError) {
+            console.error('Error creando nota:', noteError);
+          }
+        }
+
+      } catch (hubspotError) {
+        console.error('💥 Error general HubSpot:', hubspotError);
+        hubspotResult = { success: false, message: hubspotError.message };
       }
     }
 
-    // 4. Enviar email con cotización (NUEVO)
+    // 4. SENDGRID - Enviar email con cotización
     try {
-      await enviarEmailCotizacion({
+      emailResult = await enviarEmailCotizacion({
         to: datos.correo,
         nombre: datos.nombre,
         modelo: datos.modelo,
@@ -222,44 +269,53 @@ UF utilizada: $${cotizacion.uf.valor.toLocaleString('es-CL')} (${cotizacion.uf.f
         htmlContent: sistema.generarHTMLCotizacion(cotizacion),
         sucursal: cotizacion.sucursal
       });
-      console.log('Email de cotización enviado');
+      console.log('Email resultado:', emailResult);
     } catch (emailError) {
       console.error('Error al enviar email:', emailError);
-      // No fallar si el email falla, pero loggearlo
+      emailResult = { success: false, message: emailError.message };
     }
 
-    
-     return {
-  statusCode: 200,
-  headers: {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*'
-  },
-  body: JSON.stringify({
-    success: true,
-    message: 'Cotización enviada exitosamente',
-    cotizacion: {
-      numero: cotizacion.numero,
-      fecha: cotizacion.fecha,
-      vigencia: cotizacion.vigencia,
-      modelo: datos.modelo,
-      precios: {
-        economica: cotizacion.precios.economica?.clp,
-        premium: cotizacion.precios.premium?.clp,
-        estructural: cotizacion.precios.estructural?.clp
+    console.log('=== RESUMEN FINAL ===');
+    console.log('HubSpot:', hubspotResult.success ? '✅' : '❌', hubspotResult.message);
+    console.log('Email:', emailResult.success ? '✅' : '❌', emailResult.message);
+    console.log('==================');
+
+    // Respuesta exitosa con todos los estados
+    return {
+      statusCode: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
       },
-      uf: {
-        valor: cotizacion.uf.valor,
-        fecha: cotizacion.uf.fecha
-      }
-    },
-    whatsapp_url: `https://wa.me/${cotizacion.sucursal.whatsapp.replace('+', '')}?text=Hola, recibí la cotización ${cotizacion.numero} para el modelo ${datos.modelo}. Me gustaría más información.`,
-    hubspot_contact_id: contactId || null
-  })
-};
+      body: JSON.stringify({
+        success: true,
+        message: 'Cotización procesada exitosamente',
+        cotizacion: {
+          numero: cotizacion.numero,
+          fecha: cotizacion.fecha,
+          vigencia: cotizacion.vigencia,
+          modelo: datos.modelo,
+          precios: {
+            economica: cotizacion.precios.economica?.clp,
+            premium: cotizacion.precios.premium?.clp,
+            estructural: cotizacion.precios.estructural?.clp
+          },
+          uf: {
+            valor: cotizacion.uf.valor,
+            fecha: cotizacion.uf.fecha
+          }
+        },
+        integraciones: {
+          hubspot: hubspotResult,
+          email: emailResult
+        },
+        whatsapp_url: `https://wa.me/${cotizacion.sucursal.whatsapp.replace('+', '')}?text=Hola, recibí la cotización ${cotizacion.numero} para el modelo ${datos.modelo}. Me gustaría más información.`,
+        hubspot_contact_id: contactId || null
+      })
+    };
 
   } catch (error) {
-    console.error('Error en función de cotización:', error);
+    console.error('💥 ERROR GENERAL:', error);
     return {
       statusCode: 500,
       headers: {
@@ -268,64 +324,76 @@ UF utilizada: $${cotizacion.uf.valor.toLocaleString('es-CL')} (${cotizacion.uf.f
       },
       body: JSON.stringify({ 
         error: 'Error interno del servidor',
-        details: error.message 
+        details: error.message,
+        timestamp: new Date().toISOString()
       })
     };
   }
 };
 
-// Función para enviar emails usando Netlify Forms o servicios externos
+// FUNCIÓN PARA ENVIAR EMAILS CON SENDGRID
 async function enviarEmailCotizacion(emailData) {
   try {
-    // OPCIÓN 1: Usar servicio de email externo (recomendado para producción)
-    // Aquí puedes integrar SendGrid, Mailgun, o AWS SES
+    const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
     
-    // OPCIÓN 2: Para desarrollo/testing - solo logging
-    console.log('=== EMAIL DE COTIZACIÓN ===');
+    console.log('=== ENVIANDO EMAIL ===');
     console.log('Para:', emailData.to);
     console.log('Nombre:', emailData.nombre);
     console.log('Modelo:', emailData.modelo);
     console.log('Número:', emailData.numero);
-    console.log('Sucursal:', emailData.sucursal.nombre);
-    console.log('==========================');
+    console.log('SendGrid configurado:', !!SENDGRID_API_KEY);
+    console.log('====================');
     
-    // TODO: Implementar servicio de email real
-    // Ejemplo con SendGrid:
-    /*
-    const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
+    // Enviar con SendGrid si está configurado
     if (SENDGRID_API_KEY) {
+      const emailPayload = {
+        personalizations: [{
+          to: [{ 
+            email: emailData.to, 
+            name: emailData.nombre 
+          }]
+        }],
+        from: { 
+          email: 'cotizacion@prefabricadaspremium.cl', 
+          name: `Prefabricadas Premium - ${emailData.sucursal.nombre}` 
+        },
+        subject: `🏠 Tu Cotización ${emailData.numero} - Modelo ${emailData.modelo}`,
+        content: [{
+          type: 'text/html',
+          value: emailData.htmlContent
+        }]
+      };
+
+      console.log('Enviando email via SendGrid...');
+      
       const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${SENDGRID_API_KEY}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          personalizations: [{
-            to: [{ email: emailData.to, name: emailData.nombre }]
-          }],
-          from: { 
-            email: emailData.sucursal.email, 
-            name: `Prefabricadas Premium - ${emailData.sucursal.nombre}` 
-          },
-          subject: `Tu Cotización ${emailData.numero} - Modelo ${emailData.modelo}`,
-          content: [{
-            type: 'text/html',
-            value: emailData.htmlContent
-          }]
-        })
+        body: JSON.stringify(emailPayload)
       });
       
-      if (!response.ok) {
-        throw new Error('Error al enviar email con SendGrid');
+      if (response.ok) {
+        console.log('✅ Email enviado exitosamente via SendGrid');
+        return { success: true, message: 'Email enviado via SendGrid', method: 'sendgrid' };
+      } else {
+        const errorText = await response.text();
+        console.error('❌ Error de SendGrid:', response.status, errorText);
+        throw new Error(`SendGrid error: ${response.status} - ${errorText}`);
       }
+    } else {
+      console.warn('⚠️ SendGrid API Key no configurada');
+      return { success: false, message: 'SendGrid no configurado', method: 'none' };
     }
-    */
-    
-    return { success: true, message: 'Email procesado' };
     
   } catch (error) {
-    console.error('Error en enviarEmailCotizacion:', error);
-    throw error;
+    console.error('💥 Error en enviarEmailCotizacion:', error);
+    return { 
+      success: false, 
+      message: `Error al enviar email: ${error.message}`,
+      method: 'error'
+    };
   }
 }

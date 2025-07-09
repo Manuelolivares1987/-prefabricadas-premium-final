@@ -228,34 +228,35 @@ UF utilizada: $${cotizacion.uf.valor.toLocaleString('es-CL')} (${cotizacion.uf.f
       // No fallar si el email falla, pero loggearlo
     }
 
-    return {
-      statusCode: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
+    
+     return {
+  statusCode: 200,
+  headers: {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*'
+  },
+  body: JSON.stringify({
+    success: true,
+    message: 'Cotización enviada exitosamente',
+    cotizacion: {
+      numero: cotizacion.numero,
+      fecha: cotizacion.fecha,
+      vigencia: cotizacion.vigencia,
+      modelo: datos.modelo,
+      precios: {
+        economica: cotizacion.precios.economica?.clp,
+        premium: cotizacion.precios.premium?.clp,
+        estructural: cotizacion.precios.estructural?.clp
       },
-      body: JSON.stringify({
-        success: true,
-        message: 'Cotización enviada exitosamente',
-        cotizacion: {
-          numero: cotizacion.numero,
-          fecha: cotizacion.fecha,
-          vigencia: cotizacion.vigencia,
-          modelo: datos.modelo,
-          precios: {
-            economica: cotizacion.precios.economica?.clp,
-            premium: cotizacion.precios.premium?.clp,
-            estructural: cotizacion.precios.estructural?.clp
-          },
-          uf: {
-            valor: cotizacion.uf.valor,
-            fecha: cotizacion.uf.fecha
-          }
-        },
-        whatsapp_url: `https://wa.me/${cotizacion.sucursal.whatsapp.replace('+', '')}?text=Hola, recibí la cotización ${cotizacion.numero} para el modelo ${datos.modelo}. Me gustaría más información.`,
-        hubspot_contact_id: contactId || null
-      })
-    };
+      uf: {
+        valor: cotizacion.uf.valor,
+        fecha: cotizacion.uf.fecha
+      }
+    },
+    whatsapp_url: `https://wa.me/${cotizacion.sucursal.whatsapp.replace('+', '')}?text=Hola, recibí la cotización ${cotizacion.numero} para el modelo ${datos.modelo}. Me gustaría más información.`,
+    hubspot_contact_id: contactId || null
+  })
+};
 
   } catch (error) {
     console.error('Error en función de cotización:', error);

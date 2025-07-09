@@ -804,57 +804,82 @@ h1, h2, h3, h4, h5, h6, p, span, div, label, input, select, textarea, button {
       }
     });
 
-    // Mostrar modal con cotización
-    function mostrarModalCotizacion(resultado) {
-      const modal = document.getElementById('modal-cotizacion');
-      const modalBody = document.getElementById('modal-body');
-      
-      modalBody.innerHTML = `
-        <div style="text-align: center; margin-bottom: 30px;">
-          <h3>Cotización #${resultado.cotizacion.numero}</h3>
-          <p>Modelo ${resultado.cotizacion.modelo}</p>
-        </div>
+        // Mostrar modal con cotización
+function mostrarModalCotizacion(resultado) {
+  const modal = document.getElementById('modal-cotizacion');
+  const modalBody = document.getElementById('modal-body');
+  
+  modalBody.innerHTML = `
+    <div style="text-align: center; margin-bottom: 30px;">
+      <h3>Cotización #${resultado.cotizacion.numero}</h3>
+      <p>Modelo ${resultado.cotizacion.modelo}</p>
+    </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
-          <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; text-align: center;">
-            <h4 style="color: #0074D9; margin-bottom: 10px;">Opción Económica</h4>
-            <p style="font-size: 1.5em; font-weight: bold; color: #28a745;">
-              $${resultado.cotizacion.precios.economica?.toLocaleString('es-CL') || 'N/A'}
-            </p>
-            <small>Madera + OSB</small>
-          </div>
-          <div style="background: #e8f5e8; padding: 20px; border-radius: 10px; text-align: center; border: 2px solid #28a745;">
-            <h4 style="color: #28a745; margin-bottom: 10px;">Opción Premium ⭐</h4>
-            <p style="font-size: 1.5em; font-weight: bold; color: #28a745;">
-              $${resultado.cotizacion.precios.premium?.toLocaleString('es-CL') || 'N/A'}
-            </p>
-            <small>SIP + Volcanboard</small>
-          </div>
-          <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; text-align: center;">
-            <h4 style="color: #0074D9; margin-bottom: 10px;">Opción Estructural</h4>
-            <p style="font-size: 1.5em; font-weight: bold; color: #28a745;">
-              $${resultado.cotizacion.precios.estructural?.toLocaleString('es-CL') || 'N/A'}
-            </p>
-            <small>Metalcon + Volcanboard</small>
-          </div>
-        </div>
+    <!-- Información de UF y Vigencia -->
+    <div style="background: #fff3cd; border: 2px solid #ffeaa7; padding: 20px; border-radius: 10px; margin-bottom: 25px; text-align: center;">
+      <h4 style="color: #856404; margin-bottom: 10px;">📊 Información de Cotización</h4>
+      <p style="margin: 5px 0;"><strong>Valor UF utilizado:</strong> $${resultado.cotizacion.uf?.valor?.toLocaleString('es-CL') || 'No disponible'}</p>
+      <p style="margin: 5px 0;"><strong>Fecha UF:</strong> ${resultado.cotizacion.uf?.fecha || 'No disponible'}</p>
+      <p style="margin: 5px 0;"><strong>Vigencia:</strong> ${resultado.cotizacion.vigencia}</p>
+      <small style="color: #666; font-style: italic;">(15 días corridos desde la fecha de emisión)</small>
+    </div>
 
-        <div style="text-align: center; margin-bottom: 20px;">
-          <p><strong>Vigencia:</strong> ${resultado.cotizacion.vigencia}</p>
-          <p style="color: #666; margin-top: 10px;">
-            Recibirás un correo electrónico con la cotización detallada y todas las especificaciones técnicas.
-          </p>
-        </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 25px;">
+      <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; text-align: center;">
+        <h4 style="color: #0074D9; margin-bottom: 10px;">Opción Económica</h4>
+        <p style="font-size: 1.5em; font-weight: bold; color: #28a745;">
+          $${resultado.cotizacion.precios.economica?.toLocaleString('es-CL') || 'N/A'}
+        </p>
+        <small>Madera + OSB</small>
+      </div>
+      <div style="background: #e8f5e8; padding: 20px; border-radius: 10px; text-align: center; border: 2px solid #28a745;">
+        <h4 style="color: #28a745; margin-bottom: 10px;">Opción Premium ⭐</h4>
+        <p style="font-size: 1.5em; font-weight: bold; color: #28a745;">
+          $${resultado.cotizacion.precios.premium?.toLocaleString('es-CL') || 'N/A'}
+        </p>
+        <small>SIP + Volcanboard</small>
+      </div>
+      <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; text-align: center;">
+        <h4 style="color: #0074D9; margin-bottom: 10px;">Opción Estructural</h4>
+        <p style="font-size: 1.5em; font-weight: bold; color: #28a745;">
+          $${resultado.cotizacion.precios.estructural?.toLocaleString('es-CL') || 'N/A'}
+        </p>
+        <small>Metalcon + Volcanboard</small>
+      </div>
+    </div>
 
-        <div style="text-align: center;">
-          <a href="${resultado.whatsapp_url}" class="whatsapp-btn" target="_blank">
-            💬 Continuar por WhatsApp
-          </a>
-        </div>
-      `;
-      
-      modal.style.display = 'block';
-    }
+    <!-- Nota importante sobre valores referenciales -->
+    <div style="background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%); border: 2px solid #17a2b8; padding: 20px; border-radius: 12px; margin-bottom: 25px;">
+      <h4 style="color: #0c5460; margin-bottom: 15px; text-align: center;">⚠️ Información Importante</h4>
+      <div style="text-align: center; color: #0c5460;">
+        <p style="margin: 8px 0; font-weight: 500;">
+          📋 <strong>Estos precios son referenciales</strong> y están sujetos a evaluación final.
+        </p>
+        <p style="margin: 8px 0;">
+          👤 <strong>Deben ser aprobados por un agente de ventas</strong> de Prefabricadas Premium.
+        </p>
+        <p style="margin: 8px 0;">
+          📧 <strong>Recibirás un correo electrónico</strong> con la cotización detallada.
+        </p>
+        <p style="margin: 8px 0; font-size: 0.9em; font-style: italic;">
+          💡 Los precios finales pueden variar según las especificaciones del terreno, 
+          ubicación geográfica y requerimientos específicos del proyecto.
+        </p>
+      </div>
+    </div>
+
+    <div style="text-align: center;">
+      <a href="${resultado.whatsapp_url}" class="whatsapp-btn" target="_blank">
+        💬 Continuar por WhatsApp
+      </a>
+      <p style="margin-top: 10px; color: #666; font-size: 0.9em;">
+        Conecta con nuestro especialista para validar y confirmar tu cotización
+      </p>
+    </div>
+  `;
+  
+  modal.style.display = 'block';
+}
 
     // Cerrar modal
     document.querySelector('.close').addEventListener('click', function() {

@@ -247,8 +247,8 @@ function calcularPrecioConfiguracion(modelo, material, revestimiento, valorUF) {
   if (configuracion.logia && tarifa.logia) totalUF += configuracion.logia * tarifa.logia;
 
   return {
-    uf: Math.round(totalUF * 100) / 100,
-    clp: Math.round(totalUF * valorUF) // SIN IVA - se mostrará como "+ IVA"
+    uf: Math.ceil(totalUF), // Redondear hacia arriba para números cerrados
+    clp: Math.round(Math.ceil(totalUF) * valorUF) // Usar UF redondeada hacia arriba
   };
 }
 
@@ -319,7 +319,7 @@ function generarCotizacion(datosFormulario, uf) {
       m2_terraza: modeloInfo.m2_terraza,
       entrepiso: modeloInfo.entrepiso,
       logia: modeloInfo.logia,
-      m2_total: modeloInfo.m2_utiles + modeloInfo.m2_terraza + modeloInfo.entrepiso + modeloInfo.logia,
+      m2_total: modeloInfo.m2_utiles + modeloInfo.m2_terraza + modeloInfo.logia,
       descripcion: modeloInfo.descripcion
     },
     
@@ -345,30 +345,55 @@ function generarHTMLEmailCompleto(cotizacion) {
   })).filter(precio => precio.uf);
 
   return `
-  <!DOCTYPE html>
-  <html lang="es">
+  <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+  <html xmlns="http://www.w3.org/1999/xhtml" lang="es">
   <head>
-      <meta charset="UTF-8">
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta http-equiv="Content-Language" content="es">
+      <meta name="language" content="Spanish">
       <meta name="x-apple-disable-message-reformatting">
-      <title>Cotización ${cotizacion.numero} - Prefabricadas Premium</title>
+      <title>Cotización Prefabricadas Premium - Modelo ${cotizacion.modelo.nombre}</title>
+      <!--[if mso]>
+      <noscript>
+          <xml>
+              <o:OfficeDocumentSettings>
+                  <o:PixelsPerInch>96</o:PixelsPerInch>
+              </o:OfficeDocumentSettings>
+          </xml>
+      </noscript>
+      <![endif]-->
       <style>
-          /* RESET PARA EMAIL */
+          /* RESET PARA EMAIL - ESPAÑOL OPTIMIZADO */
           * { margin: 0; padding: 0; box-sizing: border-box; }
           
           body { 
-              font-family: Arial, sans-serif; 
+              font-family: Arial, Helvetica, sans-serif; 
               line-height: 1.4; 
               color: #333; 
               background: #f5f5f5;
               -webkit-text-size-adjust: 100%;
               -ms-text-size-adjust: 100%;
+              direction: ltr;
+              text-align: left;
           }
           
           table { 
               border-collapse: collapse; 
               mso-table-lspace: 0pt; 
               mso-table-rspace: 0pt; 
+              width: 100%;
+          }
+          
+          td {
+              border-collapse: collapse;
+              mso-line-height-rule: exactly;
+          }
+          
+          /* PREVENIR TRADUCCIÓN AUTOMÁTICA DE ESTRUCTURA */
+          .no-translate {
+              -webkit-transform: translateZ(0);
+              transform: translateZ(0);
           }
           
           .container { 
@@ -549,6 +574,7 @@ function generarHTMLEmailCompleto(cotizacion) {
               color: #e74c3c;
               font-weight: bold;
               margin-top: 5px;
+              display: block;
           }
           .incluye-lista { 
               list-style: none; 
@@ -563,7 +589,7 @@ function generarHTMLEmailCompleto(cotizacion) {
               line-height: 1.3;
           }
           .incluye-lista li::before { 
-              content: '✓'; 
+              content: '• '; 
               position: absolute; 
               left: 0; 
               color: #28a745; 
@@ -688,21 +714,21 @@ function generarHTMLEmailCompleto(cotizacion) {
           }
       </style>
   </head>
-  <body>
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: Arial, Helvetica, sans-serif;">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 0; padding: 0;">
           <tr>
               <td align="center" style="padding: 20px 10px;">
-                  <div class="container">
+                  <div class="container no-translate">
                       
                       <!-- HEADER -->
                       <div class="header">
-                          <h1>🏠 COTIZACIÓN PREFABRICADAS PREMIUM</h1>
-                          <p>Cotización N° ${cotizacion.numero} | ${cotizacion.fecha}</p>
+                          <h1>COTIZACIÓN PREFABRICADAS PREMIUM</h1>
+                          <p>Cotización Número ${cotizacion.numero} | Fecha ${cotizacion.fecha}</p>
                       </div>
                       
                       <!-- INFORMACIÓN DEL CLIENTE -->
                       <div class="section">
-                          <h3 class="section-title">📋 Información del Cliente</h3>
+                          <h3 class="section-title">Información del Cliente</h3>
                           <div class="info-grid">
                               <div class="info-item">
                                   <strong>Nombre:</strong>
@@ -741,7 +767,7 @@ function generarHTMLEmailCompleto(cotizacion) {
                       
                       <!-- MODELO Y PLANTA -->
                       <div class="section">
-                          <h3 class="section-title">🏠 Modelo Seleccionado</h3>
+                          <h3 class="section-title">Modelo Seleccionado</h3>
                           <div class="modelo-info">
                               <h2>${cotizacion.modelo.nombre}</h2>
                               <div class="modelo-specs">
@@ -750,18 +776,18 @@ function generarHTMLEmailCompleto(cotizacion) {
                                   <span class="spec">${cotizacion.modelo.m2_total}m² Total</span>
                                   <span class="spec">${cotizacion.modelo.m2_utiles}m² Útiles</span>
                                   ${cotizacion.modelo.m2_terraza ? `<span class="spec">${cotizacion.modelo.m2_terraza}m² Terraza</span>` : ''}
-                                  ${cotizacion.modelo.entrepiso ? `<span class="spec">${cotizacion.modelo.entrepiso}m² Entrepiso</span>` : ''}
                                   ${cotizacion.modelo.logia ? `<span class="spec">${cotizacion.modelo.logia}m² Logia</span>` : ''}
+                                  ${cotizacion.modelo.entrepiso ? `<span class="spec">${cotizacion.modelo.entrepiso}m² Entrepiso</span>` : ''}
                               </div>
                               <p class="modelo-descripcion">${cotizacion.modelo.descripcion}</p>
                           </div>
                           
                           <!-- PLANTA PDF -->
                           <div class="planta-section">
-                              <h4 style="color: #155724; margin-bottom: 10px;">📐 Planta Técnica del Modelo</h4>
+                              <h4 style="color: #155724; margin-bottom: 10px;">Planta Técnica del Modelo</h4>
                               <p>Descarga la planta técnica completa con dimensiones y distribución:</p>
                               <a href="https://catalogo2025premium.netlify.app/${cotizacion.modelo.pdf}" class="planta-btn" target="_blank">
-                                  📄 Descargar Planta PDF
+                                  Descargar Planta PDF
                               </a>
                               <p style="margin-top: 10px; font-size: 12px; color: #666;">
                                   <em>Archivo PDF con planos técnicos, dimensiones y especificaciones</em>
@@ -771,19 +797,19 @@ function generarHTMLEmailCompleto(cotizacion) {
                       
                       <!-- OPCIONES DE PRECIOS -->
                       <div class="section">
-                          <h3 class="section-title">💰 Opciones de Construcción</h3>
+                          <h3 class="section-title">Opciones de Construcción</h3>
                           
                           ${preciosOrdenados.map(precio => `
                               <div class="precio-card ${precio.opcion.recomendada ? 'premium' : ''}" style="border-color: ${precio.opcion.color};">
-                                  <div class="precio-titulo" style="color: ${precio.opcion.color};">${precio.opcion.icono} ${precio.opcion.titulo}</div>
+                                  <div class="precio-titulo" style="color: ${precio.opcion.color};">${precio.opcion.titulo}</div>
                                   <div class="precio-subtitulo">${precio.opcion.subtitulo}</div>
                                   <div class="precio-valor">
-                                      <span class="precio-clp">$${precio.clp.toLocaleString('es-CL')}</span>
+                                      <span class="precio-clp">${precio.clp.toLocaleString('es-CL')}</span>
                                       <div class="precio-uf">${precio.uf} UF</div>
-                                      <div class="precio-iva">+ IVA</div>
+                                      <span class="precio-iva">+ IVA</span>
                                   </div>
                                   <div style="font-weight: bold; color: ${precio.opcion.color}; margin-bottom: 8px; font-size: 14px; text-align: center;">
-                                      ✨ Esta opción incluye:
+                                      Esta opción incluye:
                                   </div>
                                   <ul class="incluye-lista">
                                       ${precio.opcion.incluye.slice(0, 6).map(item => `<li>${item}</li>`).join('')}
@@ -795,27 +821,27 @@ function generarHTMLEmailCompleto(cotizacion) {
                       
                       <!-- AVISO IMPORTANTE -->
                       <div class="aviso importante">
-                          <h4 style="margin-bottom: 10px;">⚠️ Información Importante</h4>
+                          <h4 style="margin-bottom: 10px;">Información Importante</h4>
                           <p style="margin: 5px 0; font-weight: 500;">
-                              📋 <strong>Estos precios son referenciales</strong> y están sujetos a evaluación final.
+                              <strong>Estos precios son referenciales</strong> y están sujetos a evaluación final.
                           </p>
                           <p style="margin: 5px 0;">
-                              👤 <strong>Deben ser aprobados por un agente de ventas</strong> de Prefabricadas Premium.
+                              <strong>Deben ser aprobados por un agente de ventas</strong> de Prefabricadas Premium.
                           </p>
                           <p style="margin: 5px 0; font-size: 13px; font-style: italic;">
-                              💡 Los precios finales pueden variar según especificaciones del terreno, ubicación y requerimientos del proyecto.
+                              Los precios finales pueden variar según especificaciones del terreno, ubicación y requerimientos del proyecto.
                           </p>
                       </div>
                       
                       <!-- INFORMACIÓN UF Y VIGENCIA -->
                       <div class="aviso">
-                          <strong style="font-size: 16px;">📊 Valor UF utilizado:</strong><br>
-                          <span style="font-size: 18px; color: #8B5A3C; font-weight: bold;">$${cotizacion.uf.valor.toLocaleString('es-CL')}</span>
+                          <strong style="font-size: 16px;">Valor UF utilizado:</strong><br>
+                          <span style="font-size: 18px; color: #8B5A3C; font-weight: bold;">${cotizacion.uf.valor.toLocaleString('es-CL')} pesos chilenos</span>
                           <br><small>Fecha: ${cotizacion.uf.fecha}</small>
                       </div>
                       
                       <div class="aviso vigencia">
-                          <strong style="font-size: 16px;">⏰ Vigencia:</strong><br>
+                          <strong style="font-size: 16px;">Vigencia de la Cotización:</strong><br>
                           <span style="font-size: 18px; font-weight: bold;">Válida hasta el ${cotizacion.vigencia}</span><br>
                           <small>(15 días corridos desde la emisión)</small>
                       </div>
@@ -823,9 +849,9 @@ function generarHTMLEmailCompleto(cotizacion) {
                       <!-- FINANCIAMIENTO -->
                       ${cotizacion.financiamiento.solicitado ? `
                       <div class="financiamiento-info">
-                          <h4 style="color: #155724; margin-bottom: 15px; text-align: center;">💳 Financiamiento Solicitado</h4>
+                          <h4 style="color: #155724; margin-bottom: 15px; text-align: center;">Financiamiento Solicitado</h4>
                           <div style="text-align: center;">
-                              <p><strong>Monto:</strong> $${parseInt(cotizacion.financiamiento.monto || 0).toLocaleString('es-CL')}</p>
+                              <p><strong>Monto:</strong> ${parseInt(cotizacion.financiamiento.monto || 0).toLocaleString('es-CL')} pesos chilenos</p>
                               <p><strong>Modalidad:</strong> Crédito hipotecario de autoconstrucción</p>
                               <p><strong>Financiamiento:</strong> Hasta 80% del valor con SALVUM</p>
                               <p style="margin-top: 10px; font-style: italic; color: #666; font-size: 13px;">
@@ -835,7 +861,7 @@ function generarHTMLEmailCompleto(cotizacion) {
                       </div>
                       ` : `
                       <div class="financiamiento-info">
-                          <h4 style="color: #155724; margin-bottom: 15px; text-align: center;">💳 Opciones de Financiamiento</h4>
+                          <h4 style="color: #155724; margin-bottom: 15px; text-align: center;">Opciones de Financiamiento</h4>
                           <div style="text-align: center;">
                               <p><strong>SALVUM:</strong> Financia hasta en 60 cuotas</p>
                               <p><strong>Crédito Hipotecario:</strong> Hasta 80% del valor</p>
@@ -849,39 +875,39 @@ function generarHTMLEmailCompleto(cotizacion) {
                       
                       <!-- OTRAS VARIANTES -->
                       <div style="background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%); border: 2px solid #28a745; padding: 20px; border-radius: 8px; margin: 15px 0; text-align: center;">
-                          <h4 style="color: #155724; margin-bottom: 15px;">🏠 ¡Más Opciones Disponibles!</h4>
+                          <h4 style="color: #155724; margin-bottom: 15px;">Más Opciones Disponibles</h4>
                           <div style="color: #155724;">
                               <p style="margin: 8px 0; font-weight: 500;">
-                                  📐 <strong>Múltiples variantes y tamaños</strong> para cada modelo
+                                  <strong>Múltiples variantes y tamaños</strong> para cada modelo
                               </p>
                               <p style="margin: 8px 0;">
-                                  📏 <strong>Diferentes metrajes y distribuciones</strong> según tus necesidades
+                                  <strong>Diferentes metrajes y distribuciones</strong> según tus necesidades
                               </p>
                               <p style="margin: 8px 0;">
-                                  🎯 <strong>Opciones personalizadas</strong> para tu presupuesto y terreno
+                                  <strong>Opciones personalizadas</strong> para tu presupuesto y terreno
                               </p>
                               <p style="margin: 15px 0 8px 0; font-style: italic; color: #666; font-size: 13px;">
-                                  💡 Pregunta a tu agente de ventas por todas las variantes disponibles.
+                                  Pregunta a tu agente de ventas por todas las variantes disponibles.
                               </p>
                           </div>
                       </div>
                       
                       <!-- WHATSAPP -->
                       <div class="whatsapp-section">
-                          <h3 style="margin-bottom: 10px;">💬 ¿Consultas sobre tu cotización?</h3>
+                          <h3 style="margin-bottom: 10px;">¿Consultas sobre tu cotización?</h3>
                           <p>Conecta con nuestro especialista de ${cotizacion.sucursal.nombre}</p>
                           <a href="https://wa.me/${cotizacion.sucursal.whatsapp.replace('+', '')}?text=Hola, consultas sobre cotización ${cotizacion.numero} modelo ${cotizacion.modelo.nombre}" 
                              class="whatsapp-btn" target="_blank">
-                              📱 Chatear por WhatsApp
+                              Chatear por WhatsApp
                           </a>
                           <p style="margin-top: 10px; font-size: 14px; opacity: 0.9;">
-                              ${cotizacion.sucursal.whatsapp} | Lun-Vie 9:00-18:00
+                              ${cotizacion.sucursal.whatsapp} | Lunes a Viernes 9:00 a 18:00 horas
                           </p>
                       </div>
                       
                       <!-- PREGUNTAS FRECUENTES -->
                       <div class="section">
-                          <h3 class="section-title">❓ Preguntas Frecuentes</h3>
+                          <h3 class="section-title">Preguntas Frecuentes</h3>
                           ${cotizacion.preguntas_frecuentes.map(categoria => `
                               <div class="faq-categoria">
                                   <h4>${categoria.categoria}</h4>
@@ -899,10 +925,10 @@ function generarHTMLEmailCompleto(cotizacion) {
                       <div class="footer">
                           <h3>Prefabricadas Premium</h3>
                           <p>Tu casa soñada, construida con la más alta calidad</p>
-                          <p>📧 ${cotizacion.sucursal.email} | 📱 ${cotizacion.sucursal.whatsapp}</p>
-                          <p>📍 ${cotizacion.sucursal.direccion}</p>
+                          <p>Email: ${cotizacion.sucursal.email} | Teléfono: ${cotizacion.sucursal.whatsapp}</p>
+                          <p>Dirección: ${cotizacion.sucursal.direccion}</p>
                           <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #555; font-size: 12px;">
-                              Cotización generada el ${cotizacion.fecha} | Válida 15 días | Precios SIN IVA
+                              Cotización generada el ${cotizacion.fecha} | Válida 15 días | Precios más IVA
                           </div>
                       </div>
                       
@@ -1007,9 +1033,9 @@ exports.handler = async (event, context) => {
             lead_source: 'Formulario Web v5.0',
             hs_lead_status: 'NEW',
             message: `Cotización ${cotizacion.numero} | Modelo: ${datos.modelo} (${cotizacion.modelo.m2_total}m²) | 
-Panel Madera + IVA: $${cotizacion.precios.economica?.clp?.toLocaleString('es-CL')} | 
-Panel SIP + IVA: $${cotizacion.precios.premium?.clp?.toLocaleString('es-CL')} | 
-Panel Metalcon + IVA: $${cotizacion.precios.estructural?.clp?.toLocaleString('es-CL')} | 
+Panel Madera + IVA: ${cotizacion.precios.economica?.clp?.toLocaleString('es-CL')} (${cotizacion.precios.economica?.uf} UF) | 
+Panel SIP + IVA: ${cotizacion.precios.premium?.clp?.toLocaleString('es-CL')} (${cotizacion.precios.premium?.uf} UF) | 
+Panel Metalcon + IVA: ${cotizacion.precios.estructural?.clp?.toLocaleString('es-CL')} (${cotizacion.precios.estructural?.uf} UF) | 
 Sucursal: ${datos.sucursal} | Financiamiento: ${datos.financia === 'si' ? 'Solicitado' : 'No'}`
           }
         };
@@ -1070,11 +1096,15 @@ Sucursal: ${datos.sucursal} | Financiamiento: ${datos.financia === 'si' ? 'Solic
             email: 'cotizacion@prefabricadaspremium.cl', 
             name: `Prefabricadas Premium - ${cotizacion.sucursal.nombre}` 
           },
-          subject: `🏠 Tu Cotización ${cotizacion.numero} - Modelo ${datos.modelo}`,
+          subject: `Cotización ${cotizacion.numero} - Modelo ${datos.modelo} con Planta PDF`,
           content: [{
             type: 'text/html',
             value: generarHTMLEmailCompleto(cotizacion)
-          }]
+          }],
+          headers: {
+            'Content-Language': 'es',
+            'Accept-Language': 'es'
+          }
         };
 
         const response = await fetch('https://api.sendgrid.com/v3/mail/send', {

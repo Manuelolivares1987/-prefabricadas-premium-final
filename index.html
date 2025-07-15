@@ -536,7 +536,7 @@ h1, h2, h3, h4, h5, h6, p, span, div, label, input, select, textarea, button {
       <img src="logo_premium/1. BLANCO.png" alt="Prefabricadas Premium">
       <div class="hero-text">
         <h1>Prefabricadas Premium</h1>
-        <p>Tu casa soñada, construida con la más alta calidad </p>
+        <p>Tu casa soñada, construida con la más alta calidad y eficiencia energética</p>
       </div>
     </div>
   </header>
@@ -600,7 +600,7 @@ h1, h2, h3, h4, h5, h6, p, span, div, label, input, select, textarea, button {
             <label for="financia">¿Te gustaría financiar tu casa? *</label>
             <select id="financia" onchange="toggleFinanciamiento(this.value)" required>
               <option value="">Seleccione una opción</option>
-              <option value="no">No, pago por etapas</option>
+              <option value="no">No, pago de contado</option>
               <option value="si">Sí, me interesa el financiamiento</option>
             </select>
           </div>
@@ -642,7 +642,7 @@ h1, h2, h3, h4, h5, h6, p, span, div, label, input, select, textarea, button {
   <section class="financiamiento">
     <h3>Financia hasta en 60 cuotas</h3>
     <p style="font-size: 1.1em; margin-bottom: 20px;">
-      Trabajamos con Salvum para ofrecerte las mejores condiciones
+      Trabajamos con los principales bancos del país para ofrecerte las mejores condiciones
     </p>
     <p><small>(Sujeto a evaluación crediticia)</small></p>
     <img src="logo_salvum/Logo Salvum 2025_GRAPHS (1).png" alt="Salvum">
@@ -668,7 +668,7 @@ h1, h2, h3, h4, h5, h6, p, span, div, label, input, select, textarea, button {
     // ==========================================
     
     // Configuración global
-    let valorUF = 39200; // Valor de respaldo
+    let valorUF = 37500; // Valor de respaldo
     let fechaUF = new Date().toLocaleDateString('es-CL');
 
     // Datos de modelos actualizados con M² reales - Variantes A
@@ -841,7 +841,7 @@ h1, h2, h3, h4, h5, h6, p, span, div, label, input, select, textarea, button {
         }
       } catch (error) {
         console.error('Error al obtener UF:', error);
-        valorUF = 39200; // Valor de respaldo
+        valorUF = 37500; // Valor de respaldo
         fechaUF = new Date().toLocaleDateString('es-CL');
         console.log(`Usando UF de respaldo: ${valorUF.toLocaleString('es-CL')}`);
       }
@@ -878,8 +878,8 @@ h1, h2, h3, h4, h5, h6, p, span, div, label, input, select, textarea, button {
       }
 
       return {
-        uf: Math.round(totalUF * 100) / 100,
-        clp: Math.round(totalUF * valorUF)
+        uf: Math.ceil(totalUF), // Redondear hacia arriba para números cerrados
+        clp: Math.round(Math.ceil(totalUF) * valorUF) // Usar UF redondeada hacia arriba
       };
     }
 
@@ -901,7 +901,7 @@ h1, h2, h3, h4, h5, h6, p, span, div, label, input, select, textarea, button {
         if (modelo.entrepiso > 0) specs.push(`${modelo.entrepiso}m² Entrepiso`);
         if (modelo.logia > 0) specs.push(`${modelo.logia}m² Logia`);
 
-        const m2Total = modelo.m2_utiles + modelo.m2_terraza + modelo.entrepiso + modelo.logia;
+        const m2Total = modelo.m2_utiles + modelo.m2_terraza + modelo.logia;
         
         const modeloDiv = document.createElement('div');
         modeloDiv.className = 'modelo';
@@ -915,8 +915,9 @@ h1, h2, h3, h4, h5, h6, p, span, div, label, input, select, textarea, button {
             <div class="m2-total">
               <strong>${m2Total}m² Totales</strong>
               <br><small>${modelo.m2_utiles}m² útiles</small>
+              ${modelo.entrepiso > 0 ? `<br><small>${modelo.entrepiso}m² entrepiso</small>` : ''}
             </div>
-            <p class="precio">Desde <strong>${precioBase ? precioBase.uf : 'Consultar'} UF</strong></p>
+            <p class="precio">Desde <strong>${precioBase ? precioBase.uf : 'Consultar'} UF + IVA</strong></p>
             <p style="font-size: 0.9em; color: #666; margin-bottom: 15px; line-height: 1.4;">
               ${modelo.descripcion}
             </p>
@@ -1041,7 +1042,7 @@ h1, h2, h3, h4, h5, h6, p, span, div, label, input, select, textarea, button {
       const modalBody = document.getElementById('modal-body');
       
       const modeloInfo = modelos[resultado.cotizacion.modelo];
-      const m2Total = modeloInfo ? modeloInfo.m2_utiles + modeloInfo.m2_terraza + modeloInfo.entrepiso + modeloInfo.logia : 'N/A';
+      const m2Total = modeloInfo ? modeloInfo.m2_utiles + modeloInfo.m2_terraza + modeloInfo.logia : 'N/A';
       
       modalBody.innerHTML = `
         <div style="text-align: center; margin-bottom: 30px;">
@@ -1064,7 +1065,7 @@ h1, h2, h3, h4, h5, h6, p, span, div, label, input, select, textarea, button {
             <h4 style="color: #6c757d;">🏠 Panel Madera</h4>
             <p class="precio-subtitulo">Madera + OSB</p>
             <div class="precio-valor">
-              $${resultado.cotizacion.precios.economica?.toLocaleString('es-CL') || 'N/A'}
+              ${resultado.cotizacion.precios.economica?.toLocaleString('es-CL') || 'N/A'} + IVA
             </div>
             <small>Opción económica, excelente calidad-precio</small>
           </div>
@@ -1073,7 +1074,7 @@ h1, h2, h3, h4, h5, h6, p, span, div, label, input, select, textarea, button {
             <h4 style="color: #28a745;">⭐ Panel Premium SIP</h4>
             <p class="precio-subtitulo">SIP + Volcanboard</p>
             <div class="precio-valor">
-              $${resultado.cotizacion.precios.premium?.toLocaleString('es-CL') || 'N/A'}
+              ${resultado.cotizacion.precios.premium?.toLocaleString('es-CL') || 'N/A'} + IVA
             </div>
             <small>Máxima eficiencia energética con aislación incluida</small>
           </div>
@@ -1082,7 +1083,7 @@ h1, h2, h3, h4, h5, h6, p, span, div, label, input, select, textarea, button {
             <h4 style="color: #0074D9;">🔩 Panel Metalcon</h4>
             <p class="precio-subtitulo">Metalcon + Volcanboard</p>
             <div class="precio-valor">
-              $${resultado.cotizacion.precios.estructural?.toLocaleString('es-CL') || 'N/A'}
+              ${resultado.cotizacion.precios.estructural?.toLocaleString('es-CL') || 'N/A'} + IVA
             </div>
             <small>Máxima resistencia sísmica con respaldo CINTAC</small>
           </div>

@@ -1,4 +1,5 @@
-// Sistema de Cotización Completo v3.1 - Prefabricadas Premium
+// sistema-cotizacion-completo.js - Sistema Final v5.0
+
 class SistemaCotizacionCompleto {
   constructor() {
     this.valorUF = null;
@@ -9,7 +10,7 @@ class SistemaCotizacionCompleto {
       'La Serena': {
         whatsapp: '+56955278508',
         nombre: 'La Serena',
-        direccion: 'Av. Francisco de Aguirre 123, La Serena',
+        direccion: 'Parcela Vega Sur 53, La Serena',
         email: 'lsanchez@prefabricadaspremium.cl'
       },
       'Casablanca': {
@@ -21,221 +22,219 @@ class SistemaCotizacionCompleto {
       'Copiapó': {
         whatsapp: '+56950573020',
         nombre: 'Copiapó',
-        direccion: 'Av. Copayapu 456, Copiapó',
+        direccion: 'Sector Piedra Colgada, Copiapó',
         email: 'ffabrega@prefabricadaspremium.cl'
       }
     };
 
-    // Configuración HubSpot
-    this.hubspot = {
-      apiKey: null, // Se configurará después
-      portalId: null,
-      apiUrl: 'https://api.hubapi.com'
-    };
-
-    // Tarifas por m2 en UF (sin IVA - se aplicará después)
+    // Tarifas por m² en UF - Sistema actualizado con todas las combinaciones
     this.tarifas = {
-      MADERA_TINGLADO: { util: 3.6, terraza: 2, entrepiso: null, logia: 2.7 },
-      MADERA_OSB: { util: 3.6, terraza: 2, entrepiso: 0.72, logia: 2.7 },
-      MADERA_VOLCANBOARD: { util: 4.1, terraza: 2, entrepiso: 0.72, logia: 3 },
-      SIP_VOLCANBOARD: { util: 4.6, terraza: 2, entrepiso: 0.72, logia: 3 },
-      SIP_OSB: { util: 3.6, terraza: 2, entrepiso: 0.72, logia: 3 },
-      METALCON_VOLCANBOARD: { util: 4.6, terraza: 2, entrepiso: 1.72, logia: 3 },
-      METALCON_OSB: { util: 4.1, terraza: 2, entrepiso: 1.72, logia: 3 }
+      'MADERA_TINGLADO': { util: 3.6, terraza: 2, entrepiso: null, logia: 2.7 },
+      'MADERA_OSB': { util: 3.6, terraza: 2, entrepiso: 0.72, logia: 2.7 },
+      'MADERA_VOLCANBOARD': { util: 4.1, terraza: 2, entrepiso: 0.72, logia: 3 },
+      'SIP_VOLCANBOARD': { util: 4.8, terraza: 2, entrepiso: 0.72, logia: 3 },
+      'SIP_OSB': { util: 3.6, terraza: 2, entrepiso: 0.72, logia: 3 },
+      'METALCON_VOLCANBOARD': { util: 4.6, terraza: 2, entrepiso: 1.72, logia: 3 },
+      'METALCON_OSB': { util: 4.1, terraza: 2, entrepiso: 1.72, logia: 3 }
     };
 
-    // Modelos con todas sus variantes CORREGIDO - Milán incluye SIP + VOLCANBOARD
+    // Modelos definitivos con M² reales - Variantes A actualizado
     this.modelos = {
       'Milán': {
-        opciones: [
-          { material: 'MADERA', revestimiento: 'OSB', m2_utiles: 230, m2_terraza: 81, entrepiso: 84, logia: 0 },
-          { material: 'SIP', revestimiento: 'VOLCANBOARD', m2_utiles: 230, m2_terraza: 81, entrepiso: 84, logia: 0 },
-          { material: 'METALCON', revestimiento: 'VOLCANBOARD', m2_utiles: 230, m2_terraza: 81, entrepiso: 84, logia: 0 },
-          { material: 'MADERA', revestimiento: 'VOLCANBOARD', m2_utiles: 230, m2_terraza: 81, entrepiso: 84, logia: 0 }
-        ],
+        m2_utiles: 230,
+        m2_terraza: 81,
+        entrepiso: 84,
+        logia: 0,
         imagen: 'modelos/milan.jpg',
         dormitorios: 5,
-        baños: 4
+        baños: 4,
+        pdf: 'pdfs/milan.pdf',
+        descripcion: 'Casa familiar de gran tamaño con espacios amplios y distribución premium'
       },
       'Marbella': {
-        opciones: [
-          { material: 'MADERA', revestimiento: 'TINGLADO', m2_utiles: 125, m2_terraza: 50, entrepiso: 0, logia: 0 },
-          { material: 'MADERA', revestimiento: 'OSB', m2_utiles: 139, m2_terraza: 50, entrepiso: 0, logia: 0 },
-          { material: 'SIP', revestimiento: 'VOLCANBOARD', m2_utiles: 141, m2_terraza: 50, entrepiso: 0, logia: 0 },
-          { material: 'METALCON', revestimiento: 'VOLCANBOARD', m2_utiles: 139, m2_terraza: 50, entrepiso: 0, logia: 0 }
-        ],
+        m2_utiles: 139,
+        m2_terraza: 50,
+        entrepiso: 0,
+        logia: 0,
         imagen: 'modelos/marbella.jpg',
         dormitorios: 4,
-        baños: 2
+        baños: 2,
+        pdf: 'pdfs/marbella.pdf',
+        descripcion: 'Diseño moderno de 4 dormitorios con amplia terraza'
       },
       'Praga': {
-        opciones: [
-          { material: 'MADERA', revestimiento: 'OSB', m2_utiles: 180, m2_terraza: 18, entrepiso: 0, logia: 0 },
-          { material: 'SIP', revestimiento: 'VOLCANBOARD', m2_utiles: 180, m2_terraza: 18, entrepiso: 0, logia: 0 },
-          { material: 'METALCON', revestimiento: 'VOLCANBOARD', m2_utiles: 180, m2_terraza: 18, entrepiso: 0, logia: 0 }
-        ],
+        m2_utiles: 180,
+        m2_terraza: 18,
+        entrepiso: 0,
+        logia: 0,
         imagen: 'modelos/praga.jpg',
         dormitorios: 4,
-        baños: 3
+        baños: 3,
+        pdf: 'pdfs/praga.pdf',
+        descripcion: 'Casa de 4 dormitorios con distribución eficiente'
       },
       'Barcelona': {
-        opciones: [
-          { material: 'MADERA', revestimiento: 'OSB', m2_utiles: 150, m2_terraza: 9, entrepiso: 0, logia: 0 },
-          { material: 'SIP', revestimiento: 'VOLCANBOARD', m2_utiles: 150, m2_terraza: 9, entrepiso: 0, logia: 0 },
-          { material: 'METALCON', revestimiento: 'VOLCANBOARD', m2_utiles: 150, m2_terraza: 9, entrepiso: 0, logia: 0 }
-        ],
+        m2_utiles: 150,
+        m2_terraza: 9,
+        entrepiso: 0,
+        logia: 0,
         imagen: 'modelos/barcelona.jpg',
         dormitorios: 3,
-        baños: 2
-      },
-      'Capri': {
-        opciones: [
-          { material: 'MADERA', revestimiento: 'TINGLADO', m2_utiles: 83, m2_terraza: 41, entrepiso: 0, logia: 0 },
-          { material: 'MADERA', revestimiento: 'OSB', m2_utiles: 92, m2_terraza: 36, entrepiso: 0, logia: 0 },
-          { material: 'SIP', revestimiento: 'VOLCANBOARD', m2_utiles: 92, m2_terraza: 36, entrepiso: 0, logia: 0 },
-          { material: 'METALCON', revestimiento: 'VOLCANBOARD', m2_utiles: 92, m2_terraza: 36, entrepiso: 0, logia: 0 }
-        ],
-        imagen: 'modelos/capri.jpg',
-        dormitorios: 3,
-        baños: 2
-      },
-      'Toscana': {
-        opciones: [
-          { material: 'MADERA', revestimiento: 'TINGLADO', m2_utiles: 72, m2_terraza: 0, entrepiso: 0, logia: 0 },
-          { material: 'MADERA', revestimiento: 'OSB', m2_utiles: 87, m2_terraza: 0, entrepiso: 0, logia: 0 },
-          { material: 'SIP', revestimiento: 'VOLCANBOARD', m2_utiles: 87, m2_terraza: 0, entrepiso: 0, logia: 0 },
-          { material: 'METALCON', revestimiento: 'VOLCANBOARD', m2_utiles: 87, m2_terraza: 0, entrepiso: 0, logia: 0 }
-        ],
-        imagen: 'modelos/toscana.jpg',
-        dormitorios: 3,
-        baños: 2
-      },
-      'Amalfitano': {
-        opciones: [
-          { material: 'MADERA', revestimiento: 'TINGLADO', m2_utiles: 194, m2_terraza: 72, entrepiso: 0, logia: 0 },
-          { material: 'MADERA', revestimiento: 'OSB', m2_utiles: 230, m2_terraza: 71, entrepiso: 0, logia: 0 },
-          { material: 'SIP', revestimiento: 'VOLCANBOARD', m2_utiles: 230, m2_terraza: 71, entrepiso: 0, logia: 0 },
-          { material: 'METALCON', revestimiento: 'VOLCANBOARD', m2_utiles: 230, m2_terraza: 71, entrepiso: 0, logia: 0 }
-        ],
-        imagen: 'modelos/amalfitano.jpg',
-        dormitorios: 4,
-        baños: 3
+        baños: 2,
+        pdf: 'pdfs/barcelona.pdf',
+        descripcion: 'Casa mediterránea de 3 dormitorios con estilo clásico'
       },
       'Málaga': {
-        opciones: [
-          { material: 'MADERA', revestimiento: 'OSB', m2_utiles: 120, m2_terraza: 25, entrepiso: 0, logia: 0 },
-          { material: 'SIP', revestimiento: 'VOLCANBOARD', m2_utiles: 120, m2_terraza: 25, entrepiso: 0, logia: 0 },
-          { material: 'METALCON', revestimiento: 'VOLCANBOARD', m2_utiles: 120, m2_terraza: 25, entrepiso: 0, logia: 0 }
-        ],
+        m2_utiles: 139,
+        m2_terraza: 25,
+        entrepiso: 0,
+        logia: 0,
         imagen: 'modelos/malaga.jpg',
         dormitorios: 3,
-        baños: 2
+        baños: 2,
+        pdf: 'pdfs/malaga.pdf',
+        descripcion: 'Diseño compacto y funcional con terraza integrada'
       },
-      'Mónaco': {
-        opciones: [
-          { material: 'MADERA', revestimiento: 'OSB', m2_utiles: 115, m2_terraza: 30, entrepiso: 0, logia: 0 },
-          { material: 'SIP', revestimiento: 'VOLCANBOARD', m2_utiles: 115, m2_terraza: 30, entrepiso: 0, logia: 0 },
-          { material: 'METALCON', revestimiento: 'VOLCANBOARD', m2_utiles: 115, m2_terraza: 30, entrepiso: 0, logia: 0 }
-        ],
-        imagen: 'modelos/monaco.jpg',
+      'Capri': {
+        m2_utiles: 92,
+        m2_terraza: 36,
+        entrepiso: 0,
+        logia: 0,
+        imagen: 'modelos/capri.jpg',
         dormitorios: 3,
-        baños: 2
+        baños: 2,
+        pdf: 'pdfs/capri.pdf',
+        descripcion: 'Casa acogedora con terraza generosa para la vida al aire libre'
       },
       'Cádiz': {
-        opciones: [
-          { material: 'MADERA', revestimiento: 'OSB', m2_utiles: 105, m2_terraza: 20, entrepiso: 0, logia: 0 },
-          { material: 'SIP', revestimiento: 'VOLCANBOARD', m2_utiles: 105, m2_terraza: 20, entrepiso: 0, logia: 0 },
-          { material: 'METALCON', revestimiento: 'VOLCANBOARD', m2_utiles: 105, m2_terraza: 20, entrepiso: 0, logia: 0 }
-        ],
+        m2_utiles: 114,
+        m2_terraza: 11,
+        entrepiso: 0,
+        logia: 0,
         imagen: 'modelos/cadiz.jpg',
         dormitorios: 3,
-        baños: 2
+        baños: 2,
+        pdf: 'pdfs/cadiz.pdf',
+        descripcion: 'Casa de tamaño medio con distribución práctica y funcional'
+      },
+      'Toscana': {
+        m2_utiles: 72,
+        m2_terraza: 0,
+        entrepiso: 0,
+        logia: 0,
+        imagen: 'modelos/toscana.jpg',
+        dormitorios: 3,
+        baños: 2,
+        pdf: 'pdfs/toscana.pdf',
+        descripcion: 'Casa starter perfecta para comenzar, diseño compacto e inteligente'
+      },
+      'Mónaco': {
+        m2_utiles: 132,
+        m2_terraza: 15,
+        entrepiso: 36,
+        logia: 7,
+        imagen: 'modelos/monaco.jpg',
+        dormitorios: 3,
+        baños: 2,
+        pdf: 'pdfs/monaco.pdf',
+        descripcion: 'Casa de 2 pisos con espacios diferenciados y logia privada'
       },
       'Eclipse': {
-        opciones: [
-          { material: 'MADERA', revestimiento: 'OSB', m2_utiles: 98, m2_terraza: 22, entrepiso: 0, logia: 0 },
-          { material: 'SIP', revestimiento: 'VOLCANBOARD', m2_utiles: 98, m2_terraza: 22, entrepiso: 0, logia: 0 },
-          { material: 'METALCON', revestimiento: 'VOLCANBOARD', m2_utiles: 98, m2_terraza: 22, entrepiso: 0, logia: 0 }
-        ],
+        m2_utiles: 86,
+        m2_terraza: 0,
+        entrepiso: 36,
+        logia: 0,
         imagen: 'modelos/eclipse.jpg',
         dormitorios: 3,
-        baños: 2
+        baños: 2,
+        pdf: 'pdfs/eclipse.pdf',
+        descripcion: 'Diseño moderno de 2 pisos compacto y eficiente'
+      },
+      'Amalfitano': {
+        m2_utiles: 230,
+        m2_terraza: 71,
+        entrepiso: 0,
+        logia: 0,
+        imagen: 'modelos/amalfitano.jpg',
+        dormitorios: 4,
+        baños: 3,
+        pdf: 'pdfs/amalfitano.pdf',
+        descripcion: 'Casa premium de gran tamaño en un piso con diseño mediterráneo'
       }
     };
 
-    // Tres opciones principales para mostrar al cliente
+    // Tres opciones principales para cotización
     this.opcionesRecomendadas = {
       economica: {
-        titulo: 'Opción Económica',
+        titulo: 'Panel Madera',
         subtitulo: 'Madera + OSB',
         descripcion: 'Excelente relación calidad-precio para tu primera casa',
         material: 'MADERA',
         revestimiento: 'OSB',
         color: '#6c757d',
         orden: 1,
+        icono: '🏠',
         incluye: [
-          'Estructura de madera certificada FSC',
+          'Estructura de madera con certificación estructural',
+          'Certificación de impregnación al vacío',
           'Revestimiento OSB resistente a la humedad',
-          'Aislación térmica según normativa chilena',
-          'Instalación eléctrica básica empotrada',
-          'Instalación sanitaria completa',
-          'Terminaciones interiores estándar',
-          'Puertas y ventanas con vidrio termopanel',
-          'Cubierta con teja asfáltica 25 años',
-          'Pintura exterior e interior incluida',
-          'Garantía estructural 10 años'
+          'Kit de autoconstrucción completo',
+          'Asesoría técnica con I.T.O',
+          'Listado de maestros calificados',
+          'Manual de montaje detallado',
+          'Herrajes y fijaciones especializadas',
+          'Garantía de materiales estructurales',
+          'Soporte técnico durante construcción'
         ]
       },
       premium: {
-        titulo: 'Opción Premium',
+        titulo: 'Panel Premium SIP',
         subtitulo: 'SIP + Volcanboard',
-        descripcion: 'Máxima eficiencia energética y confort térmico',
+        descripcion: 'Máxima eficiencia energética con aislación incluida',
         material: 'SIP',
         revestimiento: 'VOLCANBOARD',
         color: '#28a745',
         orden: 2,
         recomendada: true,
+        icono: '⭐',
         incluye: [
           'Paneles SIP (Structural Insulated Panels)',
+          'Aislación térmica premium incluida',
+          'Certificado IDIEM al corte del panel',
           'Volcanboard 8mm fibrocemento ambas caras',
-          'Refuerzo estructural en núcleo de espuma',
-          'Aislación térmica premium R-15',
-          'Instalación eléctrica completa empotrada',
-          'Instalación sanitaria de lujo',
-          'Terminaciones interiores premium',
-          'Puertas y ventanas de calidad superior',
-          'Cubierta reforzada con garantía extendida',
-          'Pintura exterior premium 15 años garantía',
-          'Pre-instalación para climatización',
-          'Garantía estructural 15 años'
+          'Sistema de construcción rápida',
+          'Kit completo con herrajes especializados',
+          'Asesoría técnica especializada en SIP',
+          'Manual técnico de instalación SIP',
+          'Garantía extendida de paneles',
+          'Máxima eficiencia energética'
         ]
       },
       estructural: {
-        titulo: 'Opción Estructural',
+        titulo: 'Panel Metalcon',
         subtitulo: 'Metalcon + Volcanboard',
-        descripcion: 'Máxima resistencia sísmica y durabilidad',
+        descripcion: 'Máxima resistencia sísmica con respaldo CINTAC',
         material: 'METALCON',
         revestimiento: 'VOLCANBOARD',
         color: '#0074D9',
         orden: 3,
+        icono: '🔩',
         incluye: [
-          'Estructura Steel Frame galvanizada',
+          'Estructura Steel Frame CINTAC',
+          'Respaldo técnico de CINTAC',
           'Volcanboard estructural 8mm',
-          'Sistema antisísmico reforzado NCh433',
-          'Aislación térmica y acústica superior',
-          'Instalación eléctrica industrial empotrada',
-          'Instalación sanitaria premium',
-          'Terminaciones resistentes al fuego',
-          'Puertas y ventanas grado comercial',
-          'Cubierta metálica garantía 25 años',
-          'Tratamiento anticorrosivo total',
-          'Certificación resistencia fuego F60',
-          'Garantía estructural 20 años'
+          'Sistema antisísmico reforzado',
+          'Perfiles galvanizados certificados',
+          'Kit de fijaciones especializado',
+          'Asesoría técnica CINTAC',
+          'Manual de construcción Steel Frame',
+          'Certificación de resistencia sísmica',
+          'Garantía estructural extendida'
         ]
       }
     };
 
-    // Preguntas frecuentes (desde la investigación)
+    // Preguntas frecuentes actualizadas
     this.preguntasFrecuentes = [
       {
         categoria: 'Construcción y Calidad',
@@ -245,29 +244,12 @@ class SistemaCotizacionCompleto {
             respuesta: 'La fabricación toma 6-8 semanas en condiciones controladas de fábrica, más 1-2 semanas de montaje en sitio. Total: 2-3 meses versus 6-12 meses de construcción tradicional.'
           },
           {
-            pregunta: '¿Qué resistencia sísmica tienen las casas?',
-            respuesta: 'Todas nuestras casas cumplen con la norma NCh433 y están diseñadas para resistir terremotos de magnitud 9+. Los sistemas de acero tienen especial flexibilidad estructural para zonas sísmicas.'
+            pregunta: '¿Trabajan con materiales certificados?',
+            respuesta: 'Sí, nuestros materiales cuentan con certificación para cada mundo constructivo: Madera (Certificación estructural y de impregnación al vacío), Metalcon (Respaldo de CINTAC), Premium SIP (Certificado al corte por IDIEM).'
           },
           {
-            pregunta: '¿Cuál es la vida útil de una casa prefabricada?',
-            respuesta: 'Con mantenimiento adecuado: Madera 50-100 años, Acero 100+ años, SIP 75+ años. Todas incluyen garantía estructural de 10-20 años según la opción.'
-          }
-        ]
-      },
-      {
-        categoria: 'Permisos y Proceso',
-        preguntas: [
-          {
-            pregunta: '¿Se encargan de los permisos municipales?',
-            respuesta: 'Sí, gestionamos todos los permisos DOM requeridos. El proceso toma 30-60 días según la comuna. Incluimos arquitecto, cálculo estructural y tramitación completa.'
-          },
-          {
-            pregunta: '¿Qué incluye el servicio "llave en mano"?',
-            respuesta: 'Incluye: diseño, permisos, fabricación, preparación del terreno, fundaciones, montaje, instalaciones completas, terminaciones y recepción final. Solo necesitas las llaves.'
-          },
-          {
-            pregunta: '¿Qué requisitos tiene mi terreno?',
-            respuesta: 'Debe ser edificable, nivelado, con acceso para camiones (6m ancho mínimo), y conexiones de servicios básicos disponibles. Realizamos evaluación gratuita del terreno.'
+            pregunta: '¿Qué otros modelos y tamaños tienen disponibles?',
+            respuesta: 'Además de las opciones mostradas, tenemos múltiples variantes para cada modelo con diferentes metrajes y configuraciones. Consulta con tu agente de ventas por todas las opciones disponibles según tus necesidades específicas.'
           }
         ]
       },
@@ -276,39 +258,47 @@ class SistemaCotizacionCompleto {
         preguntas: [
           {
             pregunta: '¿Puedo financiar mi casa prefabricada?',
-            respuesta: 'Sí, trabajamos con todos los bancos principales y ofrecemos crédito hipotecario de autoconstrucción hasta 80% del valor. También aplicamos subsidios DS1 y DS49.'
+            respuesta: 'Sí, trabajamos con SALVUM donde, bajo evaluación crediticia, puedes financiar hasta en 60 cuotas. También te asesoramos en la postulación a subsidios DS1, DS49 y DS19 sin costo adicional.'
           },
           {
-            pregunta: '¿Qué subsidios puedo usar?',
-            respuesta: 'DS1 (250-550 UF), DS49 Fondo Solidario (hasta 950 UF), DS19 para clase media (1,100-2,400 UF). Te asesoramos en la postulación sin costo.'
+            pregunta: '¿Cómo funciona el pago por etapas?',
+            respuesta: 'Todos nuestros proyectos se pueden comprar a través de etapas, donde alrededor del 50% del proyecto se paga una semana antes de la entrega. El resto se puede financiar según las condiciones acordadas.'
           }
         ]
       },
       {
-        categoria: 'Eficiencia y Mantención',
+        categoria: 'Materialidad y Servicios',
         preguntas: [
           {
-            pregunta: '¿Son más eficientes energéticamente?',
-            respuesta: 'Sí, hasta 60% más eficientes que construcción tradicional, con 25% de ahorro en calefacción. Cumplimos con las 9 zonas térmicas de Chile.'
+            pregunta: '¿Qué incluye? / ¿Trabajan llave en mano?',
+            respuesta: 'Podemos realizar el radier y armar tu proyecto, o entregarte el KIT de autoconstrucción con asesoría de un I.T.O (Inspector Técnico de Obra) y listado de maestros calificados.'
           },
           {
-            pregunta: '¿Qué mantenimiento requieren?',
-            respuesta: 'Mantenimiento mínimo: revisión anual, pintura exterior cada 5-7 años, limpieza de canaletas. 7-10% menos mantenimiento que construcción tradicional.'
+            pregunta: '¿Qué incluye el kit y qué no?',
+            respuesta: 'Incluimos estructura, revestimientos y herrajes para obra gruesa. NO incluye: electricidad, gasfitería, pavimentos, puertas, ventanas. Aislación solo incluida en Panel SIP. Tenemos alianzas para adquirir especialidades a precios económicos.'
           }
         ]
       }
     ];
-
-    this.init();
   }
 
+  // Método de inicialización (para compatibilidad con Netlify)
   async init() {
-    await this.obtenerValorUF();
+    return await this.obtenerValorUF();
   }
 
   // Obtener valor actual de la UF
   async obtenerValorUF() {
     try {
+      let fetch;
+      if (typeof window !== 'undefined') {
+        // Entorno browser
+        fetch = window.fetch;
+      } else {
+        // Entorno Node.js
+        fetch = require('node-fetch');
+      }
+      
       const response = await fetch('https://mindicador.cl/api/uf');
       const data = await response.json();
       
@@ -327,7 +317,67 @@ class SistemaCotizacionCompleto {
     return false;
   }
 
-  // Calcular precios para un modelo específico
+  // Calcular precio para una configuración específica
+  calcularPrecioConfiguracion(modelo, material, revestimiento) {
+    const configuracion = this.modelos[modelo];
+    if (!configuracion) return null;
+
+    const tarifa = this.tarifas[`${material}_${revestimiento}`];
+    if (!tarifa) return null;
+
+    let totalUF = 0;
+    let desglose = {};
+
+    // Calcular cada tipo de área
+    if (configuracion.m2_utiles) {
+      const precioUtiles = configuracion.m2_utiles * tarifa.util;
+      totalUF += precioUtiles;
+      desglose.utiles = { 
+        m2: configuracion.m2_utiles, 
+        precio_m2: tarifa.util, 
+        total: precioUtiles 
+      };
+    }
+
+    if (configuracion.m2_terraza) {
+      const precioTerraza = configuracion.m2_terraza * tarifa.terraza;
+      totalUF += precioTerraza;
+      desglose.terraza = { 
+        m2: configuracion.m2_terraza, 
+        precio_m2: tarifa.terraza, 
+        total: precioTerraza 
+      };
+    }
+
+    if (configuracion.entrepiso && tarifa.entrepiso) {
+      const precioEntrepiso = configuracion.entrepiso * tarifa.entrepiso;
+      totalUF += precioEntrepiso;
+      desglose.entrepiso = { 
+        m2: configuracion.entrepiso, 
+        precio_m2: tarifa.entrepiso, 
+        total: precioEntrepiso 
+      };
+    }
+
+    if (configuracion.logia && tarifa.logia) {
+      const precioLogia = configuracion.logia * tarifa.logia;
+      totalUF += precioLogia;
+      desglose.logia = { 
+        m2: configuracion.logia, 
+        precio_m2: tarifa.logia, 
+        total: precioLogia 
+      };
+    }
+
+    return {
+      uf: Math.round(totalUF * 100) / 100,
+      clp: Math.round(totalUF * this.valorUF), // SIN IVA
+      desglose: desglose,
+      configuracion: configuracion
+    };
+  }
+
+  // Calcular precios para las 3 opciones principales de un modelo
   calcularPrecios(nombreModelo) {
     const modelo = this.modelos[nombreModelo];
     if (!modelo) return null;
@@ -338,47 +388,15 @@ class SistemaCotizacionCompleto {
     Object.keys(this.opcionesRecomendadas).forEach(tipoOpcion => {
       const opcion = this.opcionesRecomendadas[tipoOpcion];
       
-      // Buscar la configuración del modelo que coincida
-      const configuracion = modelo.opciones.find(opt => 
-        opt.material === opcion.material && opt.revestimiento === opcion.revestimiento
+      const precio = this.calcularPrecioConfiguracion(
+        nombreModelo, 
+        opcion.material, 
+        opcion.revestimiento
       );
 
-      if (configuracion) {
-        const tarifa = this.tarifas[`${opcion.material}_${opcion.revestimiento}`];
-        
-        let totalUF = 0;
-        let desglose = {};
-
-        // Calcular cada tipo de área
-        if (configuracion.m2_utiles) {
-          const precioUtiles = configuracion.m2_utiles * tarifa.util;
-          totalUF += precioUtiles;
-          desglose.utiles = { m2: configuracion.m2_utiles, precio_m2: tarifa.util, total: precioUtiles };
-        }
-
-        if (configuracion.m2_terraza) {
-          const precioTerraza = configuracion.m2_terraza * tarifa.terraza;
-          totalUF += precioTerraza;
-          desglose.terraza = { m2: configuracion.m2_terraza, precio_m2: tarifa.terraza, total: precioTerraza };
-        }
-
-        if (configuracion.entrepiso && tarifa.entrepiso) {
-          const precioEntrepiso = configuracion.entrepiso * tarifa.entrepiso;
-          totalUF += precioEntrepiso;
-          desglose.entrepiso = { m2: configuracion.entrepiso, precio_m2: tarifa.entrepiso, total: precioEntrepiso };
-        }
-
-        if (configuracion.logia && tarifa.logia) {
-          const precioLogia = configuracion.logia * tarifa.logia;
-          totalUF += precioLogia;
-          desglose.logia = { m2: configuracion.logia, precio_m2: tarifa.logia, total: precioLogia };
-        }
-
+      if (precio) {
         precios[tipoOpcion] = {
-          uf: Math.round(totalUF * 100) / 100,
-          clp: Math.round(totalUF * this.valorUF * 1.19), // CORREGIDO: Agregado IVA 19%
-          desglose: desglose,
-          configuracion: configuracion,
+          ...precio,
           opcion: opcion
         };
       }
@@ -415,7 +433,14 @@ class SistemaCotizacionCompleto {
         nombre: datosFormulario.modelo,
         dormitorios: modeloInfo.dormitorios,
         baños: modeloInfo.baños,
-        imagen: modeloInfo.imagen
+        imagen: modeloInfo.imagen,
+        pdf: modeloInfo.pdf,
+        m2_utiles: modeloInfo.m2_utiles,
+        m2_terraza: modeloInfo.m2_terraza,
+        entrepiso: modeloInfo.entrepiso,
+        logia: modeloInfo.logia,
+        m2_total: modeloInfo.m2_utiles + modeloInfo.m2_terraza + modeloInfo.entrepiso + modeloInfo.logia,
+        descripcion: modeloInfo.descripcion
       },
       
       precios: precios,
@@ -454,12 +479,54 @@ class SistemaCotizacionCompleto {
     return fecha.toLocaleDateString('es-CL');
   }
 
+  // Generar URL de WhatsApp con mensaje personalizado
+  generarURLWhatsApp(cotizacion) {
+    const sucursal = cotizacion.sucursal;
+    const mensaje = `Hola, consultas sobre cotización ${cotizacion.numero} modelo ${cotizacion.modelo.nombre}. 
+
+Cotización generada: ${cotizacion.fecha}
+Cliente: ${cotizacion.cliente.nombre}
+Teléfono: ${cotizacion.cliente.telefono}
+
+¡Gracias!`;
+
+    return `https://wa.me/${sucursal.whatsapp.replace('+', '')}?text=${encodeURIComponent(mensaje)}`;
+  }
+
+  // Obtener información resumida de todos los modelos para el catálogo
+  obtenerCatalogoModelos() {
+    const catalogoModelos = {};
+    
+    Object.entries(this.modelos).forEach(([nombre, modelo]) => {
+      // Calcular precio base usando la opción económica (MADERA + OSB)
+      const precioBase = this.calcularPrecioConfiguracion(nombre, 'MADERA', 'OSB');
+      
+      catalogoModelos[nombre] = {
+        nombre: nombre,
+        imagen: modelo.imagen,
+        pdf: modelo.pdf,
+        dormitorios: modelo.dormitorios,
+        baños: modelo.baños,
+        m2_utiles: modelo.m2_utiles,
+        m2_terraza: modelo.m2_terraza,
+        entrepiso: modelo.entrepiso,
+        logia: modelo.logia,
+        m2_total: modelo.m2_utiles + modelo.m2_terraza + modelo.entrepiso + modelo.logia,
+        descripcion: modelo.descripcion,
+        precio_base_uf: precioBase ? precioBase.uf : 'Consultar',
+        precio_base_clp: precioBase ? precioBase.clp : null
+      };
+    });
+    
+    return catalogoModelos;
+  }
+
   // Generar HTML profesional para cotización (para email)
   generarHTMLCotizacion(cotizacion) {
     const preciosOrdenados = ['economica', 'premium', 'estructural'].map(tipo => ({
       tipo,
       ...cotizacion.precios[tipo]
-    })).filter(precio => precio.uf); // Solo mostrar precios que existan
+    })).filter(precio => precio.uf);
 
     return `
     <!DOCTYPE html>
@@ -537,6 +604,8 @@ class SistemaCotizacionCompleto {
                 display: inline-flex; 
                 gap: 15px; 
                 margin-bottom: 20px; 
+                flex-wrap: wrap;
+                justify-content: center;
             }
             .detalle { 
                 background: #D4B896; 
@@ -642,6 +711,15 @@ class SistemaCotizacionCompleto {
                 background: #d1ecf1; 
                 border-color: #bee5eb; 
                 color: #0c5460; 
+            }
+            
+            .variantes-info {
+                background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%);
+                border: 2px solid #28a745;
+                padding: 25px 30px;
+                margin: 20px 30px;
+                border-radius: 12px;
+                text-align: center;
             }
             
             .whatsapp-section {
@@ -764,10 +842,14 @@ class SistemaCotizacionCompleto {
                 <div class="modelo-detalles">
                     <span class="detalle">${cotizacion.modelo.dormitorios} Dormitorios</span>
                     <span class="detalle">${cotizacion.modelo.baños} Baños</span>
+                    <span class="detalle">${cotizacion.modelo.m2_total}m² Total</span>
+                    <span class="detalle">${cotizacion.modelo.m2_utiles}m² Útiles</span>
+                    ${cotizacion.modelo.m2_terraza ? `<span class="detalle">${cotizacion.modelo.m2_terraza}m² Terraza</span>` : ''}
+                    ${cotizacion.modelo.entrepiso ? `<span class="detalle">${cotizacion.modelo.entrepiso}m² Entrepiso</span>` : ''}
+                    ${cotizacion.modelo.logia ? `<span class="detalle">${cotizacion.modelo.logia}m² Logia</span>` : ''}
                 </div>
                 <p style="color: #666; font-size: 1em; max-width: 600px; margin: 0 auto;">
-                    Casa diseñada con los más altos estándares de calidad y eficiencia energética, 
-                    cumpliendo con todas las normativas chilenas de construcción y resistencia sísmica.
+                    ${cotizacion.modelo.descripcion}
                 </p>
             </div>
             
@@ -780,7 +862,7 @@ class SistemaCotizacionCompleto {
                             <div class="precio-subtitulo">${precio.opcion.subtitulo}</div>
                             <div class="precio-valor">
                                 <span class="precio-clp">$${precio.clp.toLocaleString('es-CL')}</span>
-                                <div class="precio-uf">${precio.uf} UF (IVA incluido)</div>
+                                <div class="precio-uf">${precio.uf} UF + IVA</div>
                             </div>
                             <div style="font-weight: bold; color: ${precio.opcion.color}; margin-bottom: 10px; font-size: 1em;">
                                 ✨ Esta opción incluye:
@@ -792,6 +874,15 @@ class SistemaCotizacionCompleto {
                         </div>
                     `).join('')}
                 </div>
+            </div>
+            
+            <div class="variantes-info">
+                <h3 style="color: #155724; margin-bottom: 15px;">🏠 Otros Modelos y Variantes Disponibles</h3>
+                <p style="margin-bottom: 10px;"><strong>¡Esta es solo una muestra de nuestras opciones!</strong></p>
+                <p>Tenemos múltiples variantes para cada modelo con diferentes metrajes, distribuciones y especificaciones técnicas.</p>
+                <p style="margin-top: 10px; font-style: italic; color: #666; font-size: 0.9em;">
+                    Consulta con tu agente de ventas por todas las opciones disponibles según tus necesidades específicas y presupuesto.
+                </p>
             </div>
             
             <div class="uf-info">
@@ -861,68 +952,14 @@ class SistemaCotizacionCompleto {
     </html>
     `;
   }
-
-  // Configurar HubSpot API
-  configurarHubSpot(apiKey, portalId) {
-    this.hubspot.apiKey = apiKey;
-    this.hubspot.portalId = portalId;
-  }
-
-  // Enviar contacto a HubSpot
-  async enviarContactoHubSpot(cotizacion) {
-    if (!this.hubspot.apiKey) {
-      console.warn('HubSpot no configurado');
-      return { success: false, error: 'HubSpot no configurado' };
-    }
-
-    try {
-      const contactData = {
-        properties: {
-          email: cotizacion.cliente.email,
-          firstname: cotizacion.cliente.nombre.split(' ')[0],
-          lastname: cotizacion.cliente.nombre.split(' ').slice(1).join(' '),
-          phone: cotizacion.cliente.telefono,
-          rut_cliente: cotizacion.cliente.rut,
-          modelo_interes: cotizacion.modelo.nombre,
-          precio_economico: cotizacion.precios.economica?.clp || 0,
-          precio_premium: cotizacion.precios.premium?.clp || 0,
-          precio_estructural: cotizacion.precios.estructural?.clp || 0,
-          sucursal_preferida: cotizacion.sucursal.nombre,
-          numero_cotizacion: cotizacion.numero,
-          fecha_cotizacion: cotizacion.fecha,
-          financiamiento_solicitado: cotizacion.financiamiento.solicitado,
-          monto_financiamiento: cotizacion.financiamiento.monto,
-          habitaciones_necesarias: cotizacion.cliente.habitaciones_necesarias,
-          comentarios_cliente: cotizacion.cliente.comentarios,
-          valor_uf_cotizacion: cotizacion.uf.valor,
-          vigencia_cotizacion: cotizacion.vigencia,
-          lead_source: 'Formulario Cotización Web',
-          lifecycle_stage: 'lead'
-        }
-      };
-
-      const response = await fetch(`${this.hubspot.apiUrl}/crm/v3/objects/contacts`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.hubspot.apiKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(contactData)
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        return { success: true, contactId: result.id };
-      } else {
-        const error = await response.text();
-        return { success: false, error: error };
-      }
-
-    } catch (error) {
-      console.error('Error enviando a HubSpot:', error);
-      return { success: false, error: error.message };
-    }
-  }
 }
 
-module.exports = { SistemaCotizacionCompleto };
+// Para entorno Node.js (Netlify)
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { SistemaCotizacionCompleto };
+}
+
+// Para entorno browser
+if (typeof window !== 'undefined') {
+  window.SistemaCotizacionCompleto = SistemaCotizacionCompleto;
+}

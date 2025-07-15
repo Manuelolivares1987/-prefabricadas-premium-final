@@ -1,23 +1,74 @@
 [build]
-  functions = "netlify/functions"
+  # Directorio de publicación
   publish = "."
+  
+  # Comando de build (no necesario para este proyecto)
+  command = "echo 'Static site, no build required'"
 
-[build.environment]
-  NODE_VERSION = "18"
+# Configuración de funciones
+[functions]
+  directory = "netlify/functions"
 
-[[headers]]
-  for = "/api/*"
-  [headers.values]
-    Access-Control-Allow-Origin = "*"
-    Access-Control-Allow-Methods = "GET, POST, OPTIONS"
-    Access-Control-Allow-Headers = "Content-Type"
-
+# Redirects y rewrites
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200
 
-[[redirects]]
-  from = "/dashboard"
-  to = "/admin/dashboard.html"
-  status = 200
+# Headers de seguridad
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://mindicador.cl https://api.hubapi.com https://api.sendgrid.com"
+
+# Cache para recursos estáticos
+[[headers]]
+  for = "/modelos/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000"
+
+[[headers]]
+  for = "/pdfs/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000"
+
+[[headers]]
+  for = "/videos/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000"
+
+[[headers]]
+  for = "/logo_*/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000"
+
+# Configuración de entorno para funciones
+[context.production]
+  [context.production.environment]
+    NODE_VERSION = "18"
+
+[context.deploy-preview]
+  [context.deploy-preview.environment]
+    NODE_VERSION = "18"
+
+# Procesamiento de formularios (por si acaso)
+[build.processing]
+  skip_processing = false
+
+[build.processing.css]
+  bundle = false
+  minify = true
+
+[build.processing.js]
+  bundle = false
+  minify = true
+
+[build.processing.html]
+  pretty_urls = true
+
+[build.processing.images]
+  compress = true

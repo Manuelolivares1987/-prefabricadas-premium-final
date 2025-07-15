@@ -14,7 +14,7 @@ exports.handler = async (event, context) => {
   }
 
   // Logs de debug iniciales
-  console.log('=== INICIO DE PROCESAMIENTO ===');
+  console.log('=== INICIO DE PROCESAMIENTO - SISTEMA V5.0 ===');
   console.log('Variables de entorno disponibles:', {
     HUBSPOT_API_KEY: !!process.env.HUBSPOT_API_KEY,
     SENDGRID_API_KEY: !!process.env.SENDGRID_API_KEY
@@ -43,14 +43,13 @@ exports.handler = async (event, context) => {
 
     // Configuración HubSpot (OPCIONAL - no falla si no está configurado)
     const HUBSPOT_API_KEY = process.env.HUBSPOT_API_KEY;
-    const HUBSPOT_PORTAL_ID = process.env.HUBSPOT_PORTAL_ID;
     
     if (!HUBSPOT_API_KEY) {
       console.log('⚠️ HUBSPOT_API_KEY no configurada - saltando HubSpot');
     }
 
-    // Importar el sistema de cotización
-    const { SistemaCotizacionCompleto } = require('./sistema-cotizacion');
+    // Importar el sistema de cotización actualizado
+    const { SistemaCotizacionCompleto } = require('./sistema-cotizacion-completo');
     const sistema = new SistemaCotizacionCompleto();
     await sistema.init();
 
@@ -60,7 +59,7 @@ exports.handler = async (event, context) => {
     console.log('Fecha UF:', sistema.fechaUF);
     console.log('===============');
 
-    // Generar cotización completa
+    // Generar cotización completa con el sistema actualizado
     const cotizacion = sistema.generarCotizacion({
       nombre: datos.nombre,
       correo: datos.correo,
@@ -81,16 +80,22 @@ exports.handler = async (event, context) => {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*'
         },
-        body: JSON.stringify({ error: 'No se pudo generar la cotización' })
+        body: JSON.stringify({ error: 'No se pudo generar la cotización para el modelo especificado' })
       };
     }
 
-    // Debug: Verificar precios calculados
-    console.log('=== DEBUG PRECIOS ===');
-    console.log('Económica:', cotizacion.precios.economica?.clp);
-    console.log('Premium:', cotizacion.precios.premium?.clp);
-    console.log('Estructural:', cotizacion.precios.estructural?.clp);
-    console.log('==================');
+    // Debug: Verificar precios calculados con el nuevo sistema
+    console.log('=== DEBUG PRECIOS ACTUALIZADOS ===');
+    console.log('Modelo:', datos.modelo);
+    console.log('M² Útiles:', cotizacion.modelo.m2_utiles);
+    console.log('M² Terraza:', cotizacion.modelo.m2_terraza);
+    console.log('Entrepiso:', cotizacion.modelo.entrepiso);
+    console.log('Logia:', cotizacion.modelo.logia);
+    console.log('M² Total:', cotizacion.modelo.m2_total);
+    console.log('Económica (Madera+OSB):', cotizacion.precios.economica?.clp);
+    console.log('Premium (SIP+Volcanboard):', cotizacion.precios.premium?.clp);
+    console.log('Estructural (Metalcon+Volcanboard):', cotizacion.precios.estructural?.clp);
+    console.log('==================================');
 
     // Variables para resultados de integraciones
     let contactId = null;
@@ -109,21 +114,31 @@ exports.handler = async (event, context) => {
             lastname: datos.nombre.split(' ').slice(1).join(' ') || 'Sin apellido',
             phone: datos.telefono,
             company: 'Cliente Prefabricadas Premium',
-            numero_cotizacion: cotizacion.numero,
-            modelo_interes: datos.modelo,
-            precio_economico: (cotizacion.precios.economica?.clp || 0).toString(),
-            precio_premium: (cotizacion.precios.premium?.clp || 0).toString(),
-            precio_estructural: (cotizacion.precios.estructural?.clp || 0).toString(),
-            sucursal_preferida: datos.sucursal,
-            fecha_cotizacion: cotizacion.fecha,
-            financiamiento_solicitado: datos.financia === 'si' ? 'Sí' : 'No',
-            monto_financiamiento: (datos.monto || 0).toString(),
-            habitaciones_necesarias: (datos.habitaciones || 0).toString(),
-            comentarios_cliente: datos.comentario || 'Sin comentarios',
-            valor_uf_cotizacion: (cotizacion.uf.valor || 0).toString(),
-            vigencia_cotizacion: cotizacion.vigencia,
-            lead_source: 'Formulario Web Netlify',
-            hs_lead_status: 'NEW'
+            // Solo propiedades estándar de HubSpot
+            lead_source: 'Formulario Web',
+            hs_lead_status: 'NEW',
+            // Info detallada en campo mensaje (existe por defecto)
+            message: `Cotización ${cotizacion.numero} | Modelo: ${datos.modelo} (${cotizacion.modelo.m2_total}m²) | Sucursal: ${datos.sucursal} | 
+            
+Precios calculados:
+• Panel Madera: $${cotizacion.precios.economica?.clp?.toLocaleString('es-CL')} (${cotizacion.precios.economica?.uf} UF)
+• Panel Premium SIP: $${cotizacion.precios.premium?.clp?.toLocaleString('es-CL')} (${cotizacion.precios.premium?.uf} UF)
+• Panel Metalcon: $${cotizacion.precios.estructural?.clp?.toLocaleString('es-CL')} (${cotizacion.precios.estructural?.uf} UF)
+
+Detalles modelo:
+• ${cotizacion.modelo.m2_utiles}m² útiles
+• ${cotizacion.modelo.m2_terraza}m² terraza  
+• ${cotizacion.modelo.entrepiso}m² entrepiso
+• ${cotizacion.modelo.logia}m² logia
+
+Financiamiento: ${datos.financia === 'si' ? 'Solicitado' : 'No solicitado'}
+${datos.monto ? `Monto: $${parseInt(datos.monto).toLocaleString('es-CL')}` : ''}
+Habitaciones necesarias: ${datos.habitaciones}
+RUT: ${datos.rut || 'No proporcionado'}
+Comentarios: ${datos.comentario || 'Sin comentarios'}
+
+UF utilizada: $${cotizacion.uf.valor?.toLocaleString('es-CL')} (${cotizacion.uf.fecha})
+Vigencia: ${cotizacion.vigencia}`
           }
         };
 
@@ -174,7 +189,7 @@ exports.handler = async (event, context) => {
           try {
             const dealData = {
               properties: {
-                dealname: `Cotización ${datos.modelo} - ${datos.nombre}`,
+                dealname: `Cotización ${datos.modelo} (${cotizacion.modelo.m2_total}m²) - ${datos.nombre}`,
                 dealstage: 'appointmentscheduled',
                 pipeline: 'default',
                 amount: (cotizacion.precios.premium?.clp || cotizacion.precios.economica?.clp || 0).toString(),
@@ -205,27 +220,45 @@ exports.handler = async (event, context) => {
             console.error('Error creando deal:', dealError);
           }
 
-          // 3. Crear nota con la cotización
+          // 3. Crear nota detallada con la cotización
           try {
             const noteData = {
               properties: {
-                hs_note_body: `Cotización automática generada:
+                hs_note_body: `Cotización automática generada - Sistema V5.0:
                 
-Modelo: ${datos.modelo}
+MODELO: ${datos.modelo}
 Número de cotización: ${cotizacion.numero}
-Precio Económico: $${cotizacion.precios.economica?.clp?.toLocaleString('es-CL') || 'N/A'}
-Precio Premium: $${cotizacion.precios.premium?.clp?.toLocaleString('es-CL') || 'N/A'}
-Precio Estructural: $${cotizacion.precios.estructural?.clp?.toLocaleString('es-CL') || 'N/A'}
+Fecha: ${cotizacion.fecha}
+Vigencia: ${cotizacion.vigencia}
 
+DETALLES DEL MODELO:
+• Dormitorios: ${cotizacion.modelo.dormitorios}
+• Baños: ${cotizacion.modelo.baños}
+• M² Útiles: ${cotizacion.modelo.m2_utiles}
+• M² Terraza: ${cotizacion.modelo.m2_terraza}
+• M² Entrepiso: ${cotizacion.modelo.entrepiso}
+• M² Logia: ${cotizacion.modelo.logia}
+• M² TOTAL: ${cotizacion.modelo.m2_total}
+
+PRECIOS CALCULADOS:
+• Panel Madera (Madera+OSB): $${cotizacion.precios.economica?.clp?.toLocaleString('es-CL') || 'N/A'} (${cotizacion.precios.economica?.uf || 'N/A'} UF)
+• Panel Premium SIP (SIP+Volcanboard): $${cotizacion.precios.premium?.clp?.toLocaleString('es-CL') || 'N/A'} (${cotizacion.precios.premium?.uf || 'N/A'} UF)
+• Panel Metalcon (Metalcon+Volcanboard): $${cotizacion.precios.estructural?.clp?.toLocaleString('es-CL') || 'N/A'} (${cotizacion.precios.estructural?.uf || 'N/A'} UF)
+
+INFORMACIÓN DEL CLIENTE:
 Habitaciones necesarias: ${datos.habitaciones}
 Sucursal preferida: ${datos.sucursal}
 Financiamiento: ${datos.financia === 'si' ? 'Sí' : 'No'}
 ${datos.monto ? `Monto a financiar: $${parseInt(datos.monto).toLocaleString('es-CL')}` : ''}
+RUT: ${datos.rut || 'No proporcionado'}
 
 Comentarios: ${datos.comentario || 'Sin comentarios adicionales'}
 
-Vigencia: ${cotizacion.vigencia}
-UF utilizada: $${cotizacion.uf.valor?.toLocaleString('es-CL')} (${cotizacion.uf.fecha})`
+DATOS TÉCNICOS:
+UF utilizada: $${cotizacion.uf.valor?.toLocaleString('es-CL')} (${cotizacion.uf.fecha})
+Sistema de cálculo: V5.0 - M² reales por materialidad
+
+NOTA: Esta cotización incluye solo las 3 opciones principales. Existen múltiples variantes adicionales para cada modelo.`
               },
               associations: [{
                 to: { id: contactId },
@@ -243,7 +276,7 @@ UF utilizada: $${cotizacion.uf.valor?.toLocaleString('es-CL')} (${cotizacion.uf.
             });
 
             if (noteResponse.ok) {
-              console.log('✅ Nota creada en HubSpot');
+              console.log('✅ Nota detallada creada en HubSpot');
               hubspotResult.note = true;
             } else {
               console.log('⚠️ Nota no creada');
@@ -259,7 +292,7 @@ UF utilizada: $${cotizacion.uf.valor?.toLocaleString('es-CL')} (${cotizacion.uf.
       }
     }
 
-    // 4. SENDGRID - Enviar email con cotización
+    // 4. SENDGRID - Enviar email con cotización actualizada
     try {
       emailResult = await enviarEmailCotizacion({
         to: datos.correo,
@@ -267,7 +300,8 @@ UF utilizada: $${cotizacion.uf.valor?.toLocaleString('es-CL')} (${cotizacion.uf.
         modelo: datos.modelo,
         numero: cotizacion.numero,
         htmlContent: sistema.generarHTMLCotizacion(cotizacion),
-        sucursal: cotizacion.sucursal
+        sucursal: cotizacion.sucursal,
+        pdfPlanta: cotizacion.modelo.pdf  // Información del PDF del plano
       });
       console.log('Email resultado:', emailResult);
     } catch (emailError) {
@@ -280,7 +314,7 @@ UF utilizada: $${cotizacion.uf.valor?.toLocaleString('es-CL')} (${cotizacion.uf.
     console.log('Email:', emailResult.success ? '✅' : '❌', emailResult.message);
     console.log('==================');
 
-    // Respuesta exitosa con todos los estados
+    // Respuesta exitosa con todos los estados actualizados
     return {
       statusCode: 200,
       headers: {
@@ -295,10 +329,27 @@ UF utilizada: $${cotizacion.uf.valor?.toLocaleString('es-CL')} (${cotizacion.uf.
           fecha: cotizacion.fecha,
           vigencia: cotizacion.vigencia,
           modelo: datos.modelo,
+          modelo_info: {  
+            nombre: cotizacion.modelo.nombre,
+            dormitorios: cotizacion.modelo.dormitorios,
+            baños: cotizacion.modelo.baños,
+            m2_utiles: cotizacion.modelo.m2_utiles,
+            m2_terraza: cotizacion.modelo.m2_terraza,
+            entrepiso: cotizacion.modelo.entrepiso,
+            logia: cotizacion.modelo.logia,
+            m2_total: cotizacion.modelo.m2_total,
+            pdf: cotizacion.modelo.pdf,
+            descripcion: cotizacion.modelo.descripcion
+          },
           precios: {
             economica: cotizacion.precios.economica?.clp,
             premium: cotizacion.precios.premium?.clp,
             estructural: cotizacion.precios.estructural?.clp
+          },
+          precios_uf: {
+            economica: cotizacion.precios.economica?.uf,
+            premium: cotizacion.precios.premium?.uf,
+            estructural: cotizacion.precios.estructural?.uf
           },
           uf: {
             valor: cotizacion.uf.valor,
@@ -309,7 +360,7 @@ UF utilizada: $${cotizacion.uf.valor?.toLocaleString('es-CL')} (${cotizacion.uf.
           hubspot: hubspotResult,
           email: emailResult
         },
-        whatsapp_url: `https://wa.me/${cotizacion.sucursal.whatsapp.replace('+', '')}?text=Hola, recibí la cotización ${cotizacion.numero} para el modelo ${datos.modelo}. Me gustaría más información.`,
+        whatsapp_url: `https://wa.me/${cotizacion.sucursal.whatsapp.replace('+', '')}?text=Hola, recibí la cotización ${cotizacion.numero} para el modelo ${datos.modelo} (${cotizacion.modelo.m2_total}m²). Me gustaría más información y conocer otras opciones disponibles.`,
         hubspot_contact_id: contactId || null
       })
     };
@@ -331,18 +382,19 @@ UF utilizada: $${cotizacion.uf.valor?.toLocaleString('es-CL')} (${cotizacion.uf.
   }
 };
 
-// FUNCIÓN PARA ENVIAR EMAILS CON SENDGRID
+// FUNCIÓN PARA ENVIAR EMAILS CON SENDGRID - Actualizada
 async function enviarEmailCotizacion(emailData) {
   try {
     const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
     
-    console.log('=== ENVIANDO EMAIL ===');
+    console.log('=== ENVIANDO EMAIL ACTUALIZADO ===');
     console.log('Para:', emailData.to);
     console.log('Nombre:', emailData.nombre);
     console.log('Modelo:', emailData.modelo);
     console.log('Número:', emailData.numero);
+    console.log('PDF Planta:', emailData.pdfPlanta);
     console.log('SendGrid configurado:', !!SENDGRID_API_KEY);
-    console.log('====================');
+    console.log('=================================');
     
     // Enviar con SendGrid si está configurado
     if (SENDGRID_API_KEY) {
@@ -357,7 +409,7 @@ async function enviarEmailCotizacion(emailData) {
           email: 'cotizacion@prefabricadaspremium.cl', 
           name: `Prefabricadas Premium - ${emailData.sucursal.nombre}` 
         },
-        subject: `🏠 Tu Cotización ${emailData.numero} - Modelo ${emailData.modelo}`,
+        subject: `🏠 Tu Cotización ${emailData.numero} - Modelo ${emailData.modelo} con Planta PDF`,
         content: [{
           type: 'text/html',
           value: emailData.htmlContent
@@ -377,7 +429,7 @@ async function enviarEmailCotizacion(emailData) {
       
       if (response.ok) {
         console.log('✅ Email enviado exitosamente via SendGrid');
-        return { success: true, message: 'Email enviado via SendGrid', method: 'sendgrid' };
+        return { success: true, message: 'Email enviado via SendGrid con planta PDF', method: 'sendgrid' };
       } else {
         const errorText = await response.text();
         console.error('❌ Error de SendGrid:', response.status, errorText);

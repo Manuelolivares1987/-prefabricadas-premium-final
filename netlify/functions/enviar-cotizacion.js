@@ -67,7 +67,7 @@ const MODELOS = {
 // Tarifas por m² en UF según materialidad
 const TARIFAS = {
   'MADERA_OSB': { util: 3.6, terraza: 2, entrepiso: 0.72, logia: 2.7 },
-  'SIP_VOLCANBOARD': { util: 4.6, terraza: 2, entrepiso: 0.72, logia: 3 },
+  'SIP_VOLCANBOARD': { util: 4.8, terraza: 2, entrepiso: 0.72, logia: 3 },
   'METALCON_VOLCANBOARD': { util: 4.6, terraza: 2, entrepiso: 1.72, logia: 3 }
 };
 
@@ -343,7 +343,7 @@ async function guardarEnGoogleSheets(cotizacion, datos) {
 
       await sheets.spreadsheets.values.update({
         spreadsheetId: SPREADSHEET_ID,
-        range: `${sheetName}!A1:AF1`,
+        range: `${sheetName}!A1:AG1`,
         valueInputOption: 'RAW',
         resource: {
           values: [headers]

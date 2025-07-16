@@ -1,4 +1,5 @@
 const fetch = require('node-fetch');
+const { google } = require('googleapis');
 
 // ==========================================
 // SISTEMA DE COTIZACIÓN INTEGRADO EN LA FUNCIÓN
@@ -205,7 +206,172 @@ const PREGUNTAS_FRECUENTES = [
 ];
 
 // ==========================================
-// FUNCIONES DEL SISTEMA
+// NUEVAS FUNCIONES - GOOGLE SHEETS
+// ==========================================
+
+/**
+ * Configurar cliente de Google Sheets
+ */
+async function configurarGoogleSheets() {
+  try {
+    // Las credenciales deben estar en variables de entorno
+    const credentials = {
+      type: 'service_account',
+      project_id: process.env.GOOGLE_PROJECT_ID,
+      private_key_id: process.env.GOOGLE_PRIVATE_KEY_ID,
+      private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      client_email: process.env.GOOGLE_CLIENT_EMAIL,
+      client_id: process.env.GOOGLE_CLIENT_ID,
+      auth_uri: 'https://accounts.google.com/o/oauth2/auth',
+      token_uri: 'https://oauth2.googleapis.com/token',
+      auth_provider_x509_cert_url: 'https://www.googleapis.com/oauth2/v1/certs',
+      client_x509_cert_url: `https://www.googleapis.com/robot/v1/metadata/x509/${process.env.GOOGLE_CLIENT_EMAIL}`
+    };
+
+    const auth = new google.auth.GoogleAuth({
+      credentials: credentials,
+      scopes: ['https://www.googleapis.com/auth/spreadsheets']
+    });
+
+    const sheets = google.sheets({ version: 'v4', auth });
+    return { sheets, auth };
+  } catch (error) {
+    console.error('Error configurando Google Sheets:', error);
+    throw error;
+  }
+}
+
+/**
+ * Guardar datos en Google Sheets
+ */
+async function guardarEnGoogleSheets(cotizacion, datos) {
+  try {
+    console.log('=== GUARDANDO EN GOOGLE SHEETS ===');
+    
+    const { sheets } = await configurarGoogleSheets();
+    const SPREADSHEET_ID = process.env.GOOGLE_SPREADSHEET_ID;
+
+    if (!SPREADSHEET_ID) {
+      throw new Error('GOOGLE_SPREADSHEET_ID no está configurado');
+    }
+
+    // Preparar datos para la fila
+    const fecha = new Date();
+    const fechaFormateada = fecha.toLocaleDateString('es-CL');
+    const horaFormateada = fecha.toLocaleTimeString('es-CL');
+
+    const fila = [
+      // Columnas básicas
+      cotizacion.numero,
+      fechaFormateada,
+      horaFormateada,
+      cotizacion.cliente.nombre,
+      cotizacion.cliente.email,
+      cotizacion.cliente.telefono,
+      cotizacion.cliente.rut,
+      
+      // Información del modelo
+      cotizacion.modelo.nombre,
+      cotizacion.modelo.dormitorios,
+      cotizacion.modelo.baños,
+      cotizacion.modelo.m2_utiles,
+      cotizacion.modelo.m2_terraza,
+      cotizacion.modelo.entrepiso,
+      cotizacion.modelo.logia,
+      cotizacion.modelo.m2_total,
+      
+      // Precios
+      cotizacion.precios.economica?.clp || 'N/A',
+      cotizacion.precios.economica?.uf || 'N/A',
+      cotizacion.precios.premium?.clp || 'N/A',
+      cotizacion.precios.premium?.uf || 'N/A',
+      cotizacion.precios.estructural?.clp || 'N/A',
+      cotizacion.precios.estructural?.uf || 'N/A',
+      
+      // Información adicional
+      cotizacion.sucursal.nombre,
+      datos.financia === 'si' ? 'Sí' : 'No',
+      datos.monto || 'N/A',
+      cotizacion.cliente.habitaciones_necesarias,
+      cotizacion.cliente.comentarios,
+      cotizacion.vigencia,
+      cotizacion.uf.valor,
+      cotizacion.uf.fecha,
+      
+      // Estado inicial de tracking
+      'Enviado',
+      0, // Aperturas
+      0, // Clicks
+      'Pendiente' // Estado de seguimiento
+    ];
+
+    // Verificar si existe la hoja
+    const spreadsheet = await sheets.spreadsheets.get({
+      spreadsheetId: SPREADSHEET_ID
+    });
+
+    const sheetName = 'Cotizaciones';
+    let sheetExists = spreadsheet.data.sheets.some(sheet => 
+      sheet.properties.title === sheetName
+    );
+
+    // Crear la hoja si no existe
+    if (!sheetExists) {
+      await sheets.spreadsheets.batchUpdate({
+        spreadsheetId: SPREADSHEET_ID,
+        resource: {
+          requests: [{
+            addSheet: {
+              properties: {
+                title: sheetName
+              }
+            }
+          }]
+        }
+      });
+
+      // Agregar headers
+      const headers = [
+        'Número Cotización', 'Fecha', 'Hora', 'Nombre', 'Email', 'Teléfono', 'RUT',
+        'Modelo', 'Dormitorios', 'Baños', 'M² Útiles', 'M² Terraza', 'Entrepiso', 'Logia', 'M² Total',
+        'Precio Madera CLP', 'Precio Madera UF', 'Precio SIP CLP', 'Precio SIP UF', 
+        'Precio Metalcon CLP', 'Precio Metalcon UF',
+        'Sucursal', 'Financiamiento', 'Monto Financiamiento', 'Habitaciones Necesarias', 
+        'Comentarios', 'Vigencia', 'Valor UF', 'Fecha UF',
+        'Estado Email', 'Aperturas', 'Clicks', 'Seguimiento'
+      ];
+
+      await sheets.spreadsheets.values.update({
+        spreadsheetId: SPREADSHEET_ID,
+        range: `${sheetName}!A1:AF1`,
+        valueInputOption: 'RAW',
+        resource: {
+          values: [headers]
+        }
+      });
+    }
+
+    // Agregar la nueva fila
+    await sheets.spreadsheets.values.append({
+      spreadsheetId: SPREADSHEET_ID,
+      range: `${sheetName}!A:AF`,
+      valueInputOption: 'RAW',
+      resource: {
+        values: [fila]
+      }
+    });
+
+    console.log('✅ Datos guardados exitosamente en Google Sheets');
+    return { success: true, message: 'Datos guardados en Google Sheets' };
+
+  } catch (error) {
+    console.error('❌ Error guardando en Google Sheets:', error);
+    return { success: false, message: error.message };
+  }
+}
+
+// ==========================================
+// FUNCIONES EXISTENTES (mantener iguales)
 // ==========================================
 
 // Obtener valor UF
@@ -337,12 +503,17 @@ function generarCotizacion(datosFormulario, uf) {
   };
 }
 
-// Generar HTML profesional para email MÓVIL-OPTIMIZADO
+// Generar HTML profesional para email CON TRACKING MEJORADO
 function generarHTMLEmailCompleto(cotizacion) {
   const preciosOrdenados = ['economica', 'premium', 'estructural'].map(tipo => ({
     tipo,
     ...cotizacion.precios[tipo]
   })).filter(precio => precio.uf);
+
+  // URLs con tracking personalizado
+  const trackingParams = `utm_source=email&utm_medium=cotizacion&utm_campaign=${cotizacion.numero}&utm_content=${cotizacion.modelo.nombre}`;
+  const whatsappUrl = `https://wa.me/${cotizacion.sucursal.whatsapp.replace('+', '')}?text=Hola, consultas sobre cotización ${cotizacion.numero} modelo ${cotizacion.modelo.nombre}&${trackingParams}`;
+  const pdfUrl = `https://catalogo2025premium.netlify.app/${cotizacion.modelo.pdf}?${trackingParams}`;
 
   return `
   <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -354,6 +525,10 @@ function generarHTMLEmailCompleto(cotizacion) {
       <meta name="language" content="Spanish">
       <meta name="x-apple-disable-message-reformatting">
       <title>Cotización Prefabricadas Premium - Modelo ${cotizacion.modelo.nombre}</title>
+      
+      <!-- Pixel de tracking personalizado -->
+      <img src="https://api.sendgrid.com/v3/tracking/open.gif?cotizacion=${cotizacion.numero}&email=${encodeURIComponent(cotizacion.cliente.email)}" width="1" height="1" style="display:none;">
+      
       <!--[if mso]>
       <noscript>
           <xml>
@@ -782,11 +957,11 @@ function generarHTMLEmailCompleto(cotizacion) {
                               <p class="modelo-descripcion">${cotizacion.modelo.descripcion}</p>
                           </div>
                           
-                          <!-- PLANTA PDF -->
+                          <!-- PLANTA PDF CON TRACKING -->
                           <div class="planta-section">
                               <h4 style="color: #155724; margin-bottom: 10px;">Planta Técnica del Modelo</h4>
                               <p>Descarga la planta técnica completa con dimensiones y distribución:</p>
-                              <a href="https://catalogo2025premium.netlify.app/${cotizacion.modelo.pdf}" class="planta-btn" target="_blank">
+                              <a href="${pdfUrl}" class="planta-btn" target="_blank">
                                   Descargar Planta PDF
                               </a>
                               <p style="margin-top: 10px; font-size: 12px; color: #666;">
@@ -849,25 +1024,28 @@ function generarHTMLEmailCompleto(cotizacion) {
                       <!-- FINANCIAMIENTO -->
                       ${cotizacion.financiamiento.solicitado ? `
                       <div class="financiamiento-info">
-                          <h4 style="color: #155724; margin-bottom: 15px; text-align: center;">Financiamiento Solicitado</h4>
+                          <h4 style="color: #155724; margin-bottom: 15px; text-align: center;">Financiamiento con SALVUM</h4>
                           <div style="text-align: center;">
-                              <p><strong>Monto:</strong> ${parseInt(cotizacion.financiamiento.monto || 0).toLocaleString('es-CL')} pesos chilenos</p>
-                              <p><strong>Modalidad:</strong> Crédito hipotecario de autoconstrucción</p>
-                              <p><strong>Financiamiento:</strong> Hasta 80% del valor con SALVUM</p>
+                              <p><strong>Monto solicitado:</strong> ${parseInt(cotizacion.financiamiento.monto || 0).toLocaleString('es-CL')} pesos chilenos</p>
+                              <p><strong>SALVUM financia:</strong> Hasta $18.000.000 en 60 cuotas</p>
+                              <p><strong>Requisito:</strong> Sujeto a evaluación crediticia</p>
+                              ${parseInt(cotizacion.financiamiento.monto || 0) > 18000000 ? `
+                              <p style="color: #e74c3c; font-weight: bold;">El monto solicitado supera el límite de SALVUM. Consulta opciones de financiamiento adicional.</p>
+                              ` : ''}
                               <p style="margin-top: 10px; font-style: italic; color: #666; font-size: 13px;">
-                                  Te asesoramos en la postulación a subsidios DS1, DS49 y DS19 sin costo.
+                                  Consulta con tu agente sobre requisitos y documentación necesaria.
                               </p>
                           </div>
                       </div>
                       ` : `
                       <div class="financiamiento-info">
-                          <h4 style="color: #155724; margin-bottom: 15px; text-align: center;">Opciones de Financiamiento</h4>
+                          <h4 style="color: #155724; margin-bottom: 15px; text-align: center;">Financiamiento con SALVUM</h4>
                           <div style="text-align: center;">
-                              <p><strong>SALVUM:</strong> Financia hasta en 60 cuotas</p>
-                              <p><strong>Crédito Hipotecario:</strong> Hasta 80% del valor</p>
-                              <p><strong>Subsidios:</strong> Te asesoramos en DS1, DS49 y DS19</p>
+                              <p><strong>SALVUM financia:</strong> Hasta $18.000.000 en 60 cuotas</p>
+                              <p><strong>Requisito:</strong> Sujeto a evaluación crediticia</p>
+                              <p><strong>Proceso:</strong> Evaluación rápida y aprobación ágil</p>
                               <p style="margin-top: 10px; font-style: italic; color: #666; font-size: 13px;">
-                                  Consulta con tu agente sobre las mejores opciones de financiamiento.
+                                  Para proyectos sobre $18.000.000, consulta opciones de financiamiento adicional con tu agente.
                               </p>
                           </div>
                       </div>
@@ -892,11 +1070,11 @@ function generarHTMLEmailCompleto(cotizacion) {
                           </div>
                       </div>
                       
-                      <!-- WHATSAPP -->
+                      <!-- WHATSAPP CON TRACKING -->
                       <div class="whatsapp-section">
                           <h3 style="margin-bottom: 10px;">¿Consultas sobre tu cotización?</h3>
                           <p>Conecta con nuestro especialista de ${cotizacion.sucursal.nombre}</p>
-                          <a href="https://wa.me/${cotizacion.sucursal.whatsapp.replace('+', '')}?text=Hola, consultas sobre cotización ${cotizacion.numero} modelo ${cotizacion.modelo.nombre}" 
+                          <a href="${whatsappUrl}" 
                              class="whatsapp-btn" target="_blank">
                               Chatear por WhatsApp
                           </a>
@@ -942,10 +1120,22 @@ function generarHTMLEmailCompleto(cotizacion) {
 }
 
 // ==========================================
-// FUNCIÓN PRINCIPAL NETLIFY
+// FUNCIÓN PRINCIPAL NETLIFY MEJORADA
 // ==========================================
 
 exports.handler = async (event, context) => {
+  // Manejar solicitudes OPTIONS para CORS
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS'
+      }
+    };
+  }
+
   // Solo permitir POST
   if (event.httpMethod !== 'POST') {
     return {
@@ -958,7 +1148,7 @@ exports.handler = async (event, context) => {
     };
   }
 
-  console.log('=== INICIO DE PROCESAMIENTO - SISTEMA INTEGRADO v5.0 ===');
+  console.log('=== INICIO DE PROCESAMIENTO - SISTEMA INTEGRADO v6.0 ===');
 
   try {
     const datos = JSON.parse(event.body);
@@ -1017,6 +1207,24 @@ exports.handler = async (event, context) => {
     let contactId = null;
     let hubspotResult = { success: false, message: 'No configurado' };
     let emailResult = { success: false, message: 'No intentado' };
+    let googleSheetsResult = { success: false, message: 'No intentado' };
+
+    // ==========================================
+    // NUEVA FUNCIONALIDAD: GOOGLE SHEETS
+    // ==========================================
+    
+    if (process.env.GOOGLE_PRIVATE_KEY && process.env.GOOGLE_SPREADSHEET_ID) {
+      try {
+        console.log('=== GUARDANDO EN GOOGLE SHEETS ===');
+        googleSheetsResult = await guardarEnGoogleSheets(cotizacion, datos);
+        console.log('Google Sheets:', googleSheetsResult.success ? '✅' : '❌', googleSheetsResult.message);
+      } catch (sheetsError) {
+        console.error('💥 Error Google Sheets:', sheetsError);
+        googleSheetsResult = { success: false, message: sheetsError.message };
+      }
+    } else {
+      googleSheetsResult = { success: false, message: 'Credenciales de Google Sheets no configuradas' };
+    }
 
     // HUBSPOT - Crear/actualizar contacto (si está configurado)
     if (HUBSPOT_API_KEY) {
@@ -1030,7 +1238,7 @@ exports.handler = async (event, context) => {
             lastname: datos.nombre.split(' ').slice(1).join(' ') || 'Sin apellido',
             phone: datos.telefono,
             company: 'Cliente Prefabricadas Premium',
-            lead_source: 'Formulario Web v5.0',
+            lead_source: 'Formulario Web v6.0',
             hs_lead_status: 'NEW',
             message: `Cotización ${cotizacion.numero} | Modelo: ${datos.modelo} (${cotizacion.modelo.m2_total}m²) | 
 Panel Madera + IVA: ${cotizacion.precios.economica?.clp?.toLocaleString('es-CL')} (${cotizacion.precios.economica?.uf} UF) | 
@@ -1083,14 +1291,24 @@ Sucursal: ${datos.sucursal} | Financiamiento: ${datos.financia === 'si' ? 'Solic
       }
     }
 
-    // SENDGRID - Enviar email COMPLETO (si está configurado)
+    // ==========================================
+    // SENDGRID CON TRACKING MEJORADO
+    // ==========================================
+    
     if (SENDGRID_API_KEY) {
       try {
-        console.log('=== ENVIANDO EMAIL COMPLETO MÓVIL-OPTIMIZADO ===');
+        console.log('=== ENVIANDO EMAIL CON TRACKING AVANZADO ===');
         
         const emailPayload = {
           personalizations: [{
-            to: [{ email: datos.correo, name: datos.nombre }]
+            to: [{ email: datos.correo, name: datos.nombre }],
+            custom_args: {
+              cotizacion_numero: cotizacion.numero,
+              modelo: cotizacion.modelo.nombre,
+              cliente_email: cotizacion.cliente.email,
+              sucursal: cotizacion.sucursal.nombre,
+              timestamp: new Date().toISOString()
+            }
           }],
           from: { 
             email: 'cotizacion@prefabricadaspremium.cl', 
@@ -1104,6 +1322,26 @@ Sucursal: ${datos.sucursal} | Financiamiento: ${datos.financia === 'si' ? 'Solic
           headers: {
             'Content-Language': 'es',
             'Accept-Language': 'es'
+          },
+          tracking_settings: {
+            click_tracking: {
+              enable: true,
+              enable_text: true
+            },
+            open_tracking: {
+              enable: true,
+              substitution_tag: '%open_tracking%'
+            },
+            subscription_tracking: {
+              enable: false
+            },
+            ganalytics: {
+              enable: true,
+              utm_source: 'prefabricadas_premium',
+              utm_medium: 'email',
+              utm_campaign: `cotizacion_${cotizacion.numero}`,
+              utm_content: `modelo_${cotizacion.modelo.nombre.toLowerCase()}`
+            }
           }
         };
 
@@ -1117,8 +1355,14 @@ Sucursal: ${datos.sucursal} | Financiamiento: ${datos.financia === 'si' ? 'Solic
         });
         
         if (response.ok) {
-          console.log('✅ Email completo enviado exitosamente');
-          emailResult = { success: true, message: 'Email completo enviado con planta PDF' };
+          console.log('✅ Email con tracking enviado exitosamente');
+          emailResult = { success: true, message: 'Email con tracking enviado correctamente' };
+          
+          // Obtener el message ID de la respuesta (si está disponible)
+          const messageId = response.headers.get('x-message-id');
+          if (messageId) {
+            console.log('📧 Message ID:', messageId);
+          }
         } else {
           console.log('❌ Error enviando email:', response.status);
           emailResult = { success: false, message: `Error SendGrid: ${response.status}` };
@@ -1131,6 +1375,7 @@ Sucursal: ${datos.sucursal} | Financiamiento: ${datos.financia === 'si' ? 'Solic
     }
 
     console.log('=== RESUMEN FINAL ===');
+    console.log('Google Sheets:', googleSheetsResult.success ? '✅' : '❌', googleSheetsResult.message);
     console.log('HubSpot:', hubspotResult.success ? '✅' : '❌', hubspotResult.message);
     console.log('Email:', emailResult.success ? '✅' : '❌', emailResult.message);
 
@@ -1174,8 +1419,14 @@ Sucursal: ${datos.sucursal} | Financiamiento: ${datos.financia === 'si' ? 'Solic
           uf: uf
         },
         integraciones: {
+          google_sheets: googleSheetsResult,
           hubspot: hubspotResult,
           email: emailResult
+        },
+        tracking: {
+          email_tracking_enabled: emailResult.success,
+          sheets_logging_enabled: googleSheetsResult.success,
+          analytics_utm_enabled: true
         },
         whatsapp_url: `https://wa.me/${cotizacion.sucursal.whatsapp.replace('+', '')}?text=Hola, recibí la cotización ${cotizacion.numero} para el modelo ${datos.modelo} (${cotizacion.modelo.m2_total}m²). Me gustaría más información.`,
         hubspot_contact_id: contactId || null

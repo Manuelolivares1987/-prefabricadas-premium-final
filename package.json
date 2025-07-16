@@ -1,7 +1,7 @@
 {
   "name": "prefabricadas-premium-cotizador",
-  "version": "5.0.0",
-  "description": "Sistema de cotización automatizado para Prefabricadas Premium con cálculo por M² reales",
+  "version": "6.0.0",
+  "description": "Sistema de cotización automatizado para Prefabricadas Premium con Google Sheets y Email Tracking",
   "main": "index.html",
   "scripts": {
     "dev": "netlify dev",
@@ -10,7 +10,8 @@
     "test": "echo 'No tests specified'"
   },
   "dependencies": {
-    "node-fetch": "^2.6.12"
+    "node-fetch": "^2.6.12",
+    "googleapis": "^118.0.0"
   },
   "devDependencies": {
     "netlify-cli": "^17.0.0"
@@ -23,7 +24,9 @@
     "chile",
     "uf",
     "hubspot",
-    "sendgrid"
+    "sendgrid",
+    "google-sheets",
+    "email-tracking"
   ],
   "author": "Prefabricadas Premium",
   "license": "MIT",
